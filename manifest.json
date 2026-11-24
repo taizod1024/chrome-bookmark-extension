@@ -1,0 +1,13 @@
+{
+  "manifest_version": 3,
+  "name": "ブックマーク・パネル",
+  "version": "1.0.0",
+  "description": "ブックマークバーをフォルダごとのパネルで表示・編集します。",
+  "permissions": ["bookmarks", "favicon"],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_title": "ブックマーク・パネルを開く"
+  }
+}
