@@ -456,7 +456,7 @@ search.addEventListener("input", () => {
 for (const name of ["onCreated", "onRemoved", "onChanged", "onMoved", "onChildrenReordered", "onImportEnded"]) {
   chrome.bookmarks[name].addListener(loadBookmarks);
 }
-for (const [id, key, className, fallback] of [["#flag-single-row", "singleRow", "single-row", false], ["#flag-keep-folders", "keepFolders", "keep-folders", false]]) {
+for (const [id, key, className, fallback] of [["#flag-single-row", "singleRow", "single-row", false], ["#flag-keep-folders", "keepFolders", "keep-folders", false], ["#flag-equal-height", "equalHeight", "equal-height", false]]) {
   const checkbox = $(id);
   const stored = localStorage.getItem(key);
   checkbox.checked = stored === null ? fallback : stored === "true";

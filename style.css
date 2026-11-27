@@ -33,10 +33,12 @@ main { padding: 0 0 4px; }
 .panels::-webkit-scrollbar { display: none; }
 .panel-column { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
 .panel-column > .panel { width: 100%; }
-.panel { min-width: 0; overflow: hidden; background: white; border: 1px solid #e7ebf3; border-radius: 6px; box-shadow: 0 3px 12px #25355a08; }
+body.equal-height .panels { align-items: stretch; }
+body.equal-height .panel-column > .panel:last-child { flex: 1; }
+.panel { display: flex; flex-direction: column; min-width: 0; overflow: hidden; background: white; border: 1px solid #e7ebf3; border-radius: 6px; box-shadow: 0 3px 12px #25355a08; }
 .panel-header { display: flex; align-items: center; gap: 4px; min-height: 40px; padding: 4px; background: white; border-bottom: 1px solid #edf0f6; }
 .panel-title { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: center; font-size: 11px; }
-.entries { padding: 4px; }
+.entries { flex: 1 1 auto; padding: 4px; }
 body.limit-rows .entries { max-height: calc(var(--max-rows) * 24px + 8px); overflow-y: auto; }
 .flag { display: flex; align-items: center; gap: 4px; font-size: 12px; white-space: nowrap; margin-right: 0; }
 body:not(.single-row) .panel-scrollbar { display: none; }
