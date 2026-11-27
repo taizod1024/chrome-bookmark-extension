@@ -10,6 +10,8 @@ let editing = false;
 let loadVersion = 0;
 let dragId = null;
 let busy = false;
+const rowOptions = [10, 20, 30, 0];
+let maxRows = rowOptions.includes(Number(localStorage.getItem("maxRows"))) ? Number(localStorage.getItem("maxRows")) : 0;
 const storedColumns = Number(localStorage.getItem("columns"));
 const columnOptions = [3, 6, 10];
 let columns = [2, 4].includes(storedColumns) ? 3 : columnOptions.includes(storedColumns) ? storedColumns : 6;
@@ -32,12 +34,19 @@ function element(tag, className, text) {
   return node;
 }
 
+function setMaxRows(value) {
+  maxRows = value;
+  localStorage.setItem("maxRows", String(value));
+  document.body.classList.toggle("limit-rows", value > 0);
+  document.body.style.setProperty("--max-rows", String(value));
+  $("#rows-select").value = String(value);
+  updateScrollbar();
+}
+
 function setColumns(value) {
   columns = value;
   localStorage.setItem("columns", String(value));
-  for (const number of columnOptions) {
-    $(`#columns-${number}`).setAttribute("aria-pressed", String(value === number));
-  }
+  $("#columns-select").value = String(value);
   updateScrollbar();
 }
 
@@ -426,9 +435,8 @@ function render() {
   empty.textContent = "No matching bookmarks.";
 }
 
-for (const number of columnOptions) {
-  $(`#columns-${number}`).addEventListener("click", () => setColumns(number));
-}
+$("#rows-select").addEventListener("change", (event) => setMaxRows(Number(event.target.value)));
+$("#columns-select").addEventListener("change", (event) => setColumns(Number(event.target.value)));
 $("#edit-toggle").addEventListener("click", (event) => {
   editing = !editing;
   event.currentTarget.setAttribute("aria-pressed", String(editing));
@@ -448,7 +456,7 @@ search.addEventListener("input", () => {
 for (const name of ["onCreated", "onRemoved", "onChanged", "onMoved", "onChildrenReordered", "onImportEnded"]) {
   chrome.bookmarks[name].addListener(loadBookmarks);
 }
-for (const [id, key, className, fallback] of [["#flag-limit", "limitRows", "limit-rows", false], ["#flag-single-row", "singleRow", "single-row", false], ["#flag-keep-folders", "keepFolders", "keep-folders", false]]) {
+for (const [id, key, className, fallback] of [["#flag-single-row", "singleRow", "single-row", false], ["#flag-keep-folders", "keepFolders", "keep-folders", false]]) {
   const checkbox = $(id);
   const stored = localStorage.getItem(key);
   checkbox.checked = stored === null ? fallback : stored === "true";
@@ -460,5 +468,6 @@ for (const [id, key, className, fallback] of [["#flag-limit", "limitRows", "limi
     render();
   });
 }
+setMaxRows(maxRows);
 setColumns(columns);
 loadBookmarks();

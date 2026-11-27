@@ -14,12 +14,18 @@
     <label class="search"><span class="sr-only">Search bookmarks</span><input id="search" type="search" autocomplete="off" placeholder="Search by name, folder, or URL"></label>
     <div class="controls">
       <label class="flag"><input id="flag-keep-folders" type="checkbox"> Keep folders</label>
-      <label class="flag"><input id="flag-limit" type="checkbox"> Max 10 bookmarks</label>
-      <label class="flag"><input id="flag-single-row" type="checkbox"> 1 row</label>      <div class="column-control" role="group" aria-label="Column selection">
-        <button id="columns-3" type="button" aria-pressed="false">3 cols</button>
-        <button id="columns-6" type="button" aria-pressed="false">6 cols</button>
-        <button id="columns-10" type="button" aria-pressed="false">10 cols</button>
-      </div>
+      <label class="flag"><input id="flag-single-row" type="checkbox"> 1 row</label>
+      <select id="rows-select" class="select" aria-label="Bookmarks per panel">
+        <option value="10">10 bookmarks</option>
+        <option value="20">20 bookmarks</option>
+        <option value="30">30 bookmarks</option>
+        <option value="0">unset</option>
+      </select>
+      <select id="columns-select" class="select" aria-label="Column selection">
+        <option value="3">3 cols</option>
+        <option value="6">6 cols</option>
+        <option value="10">10 cols</option>
+      </select>
       <button id="edit-toggle" class="edit-toggle" type="button" aria-pressed="false">Edit</button>
     </div>
   </header>
