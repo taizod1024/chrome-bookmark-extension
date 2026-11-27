@@ -4,57 +4,51 @@ export function bookmarkBar(tree) {
 
 export function folderPanels(root) {
   const panels = [];
-  function visit(parent, path) {
+  function visit(parent, path, group) {
     for (const node of parent.children || []) {
       if (node.url !== undefined) continue;
       const panelPath = [...path, node.title || "Untitled folder"];
-      panels.push({ folder: node, path: panelPath });
-      visit(node, panelPath);
+      const panelGroup = group ?? node.id;
+      panels.push({ folder: node, path: panelPath, group: panelGroup });
+      visit(node, panelPath, panelGroup);
     }
   }
-  visit(root, []);
+  visit(root, [], undefined);
   return panels;
 }
 
 export function panelColumns(panels) {
   const columns = [];
-  let stack = [];
-  let stackCount = 0;
   for (const panel of panels) {
-    const panelCount = panel.entries.length + 1;
-    if (stack.length && stackCount + panelCount > 20) {
-      columns.push(stack);
-      stack = [];
-      stackCount = 0;
-    }
-    stack.push(panel);
-    stackCount += panelCount;
+    const last = columns[columns.length - 1];
+    if (last && last[0].group === panel.group) last.push(panel);
+    else columns.push([panel]);
   }
-  if (stack.length) columns.push(stack);
   return columns;
 }
 
 export function matchesEntry(node, query, panelTitle = "") {
-  const needle = query.trim().toLocaleLowerCase();
-  if (!needle) return true;
-  return [panelTitle, node.title, node.url || ""]
-    .some((value) => value.toLocaleLowerCase().includes(needle));
+  const terms = query.toLocaleLowerCase().split(/\s+/).filter(Boolean);
+  if (!terms.length) return true;
+  const fields = [panelTitle, node.title, node.url || ""].map((value) => value.toLocaleLowerCase());
+  return terms.every((term) => fields.some((value) => value.includes(term)));
 }
 
-export function visibleBookmarkPanels(root, query) {
+export function visibleBookmarkPanels(root, query, keepFolders = false) {
   const panels = [];
-  for (const { folder, path } of folderPanels(root)) {
+  const showEmpty = keepFolders || !query.trim();
+  for (const { folder, path, group } of folderPanels(root)) {
     const folderPath = path.join("/");
     const entries = (folder.children || []).filter((node) => node.url !== undefined);
     const visibleEntries = entries.filter((node) => matchesEntry(node, query, folderPath));
-    if (!query.trim() || visibleEntries.length) {
-      panels.push({ folder, path: folderPath, entries, visibleEntries, isRoot: false });
+    if (showEmpty || visibleEntries.length) {
+      panels.push({ folder, path: folderPath, group, entries, visibleEntries, isRoot: false });
     }
   }
   const entries = (root.children || []).filter((node) => node.url !== undefined);
   const visibleEntries = entries.filter((node) => matchesEntry(node, query));
-  if (!query.trim() || visibleEntries.length) {
-    panels.push({ folder: root, path: "", entries, visibleEntries, isRoot: true });
+  if (showEmpty || visibleEntries.length) {
+    panels.push({ folder: root, path: "", group: root.id, entries, visibleEntries, isRoot: true });
   }
   return panels;
 }

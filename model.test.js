@@ -33,21 +33,21 @@ test("lists every nested folder as a panel with its full path", () => {
   ]);
 });
 
-test("stacks panels vertically up to 20 titles and bookmarks", () => {
+test("stacks panels by top-level folder", () => {
   const panels = [
-    { id: "first", entries: Array(9) },
-    { id: "second", entries: Array(8) },
-    { id: "third", entries: Array(0) },
-    { id: "fourth", entries: Array(0) },
-    { id: "fifth", entries: Array(18) },
-    { id: "oversized", entries: Array(20) },
-    { id: "last", entries: Array(0) },
+    { id: "a", group: "a" },
+    { id: "b", group: "b" },
+    { id: "b/b1", group: "b" },
+    { id: "b/b2", group: "b" },
+    { id: "c", group: "c" },
+    { id: "c/c1", group: "c" },
+    { id: "root", group: "bar" },
   ];
   assert.deepEqual(panelColumns(panels).map((column) => column.map(({ id }) => id)), [
-    ["first", "second", "third"],
-    ["fourth", "fifth"],
-    ["oversized"],
-    ["last"],
+    ["a"],
+    ["b", "b/b1", "b/b2"],
+    ["c", "c/c1"],
+    ["root"],
   ]);
 });
 

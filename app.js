@@ -14,12 +14,15 @@ const storedColumns = Number(localStorage.getItem("columns"));
 const columnOptions = [3, 6, 10];
 let columns = [2, 4].includes(storedColumns) ? 3 : columnOptions.includes(storedColumns) ? storedColumns : 6;
 
+let statusTimer;
 function showStatus(message, isError = false) {
   const status = $("#status");
+  clearTimeout(statusTimer);
   status.textContent = message;
   status.title = message;
   status.classList.toggle("error", isError);
   status.hidden = !message;
+  if (message) statusTimer = setTimeout(() => { status.hidden = true; }, isError ? 8000 : 4000);
 }
 
 function element(tag, className, text) {
@@ -39,6 +42,7 @@ function setColumns(value) {
 }
 
 function updateScrollbar() {
+  panels.style.setProperty("--columns", String(columns));
   const panelWidth = Math.max(100, (panels.clientWidth - 4 * (columns - 1)) / columns);
   panels.style.setProperty("--panel-width", `${panelWidth}px`);
   const scrollableWidth = Math.max(0, panels.scrollWidth - panels.clientWidth);
@@ -310,6 +314,30 @@ function deleteButton(node) {
   return button;
 }
 
+function addFolderButton(parent) {
+  const button = element("button", "icon-button add-folder-button", "+");
+  button.type = "button";
+  button.title = `Add folder to ${parent.title || "Bookmarks bar"}`;
+  button.setAttribute("aria-label", button.title);
+  button.addEventListener("click", async () => {
+    if (busy) return;
+    const name = window.prompt("New folder name");
+    if (name === null || !name.trim()) return;
+    busy = true;
+    try {
+      await chrome.bookmarks.create({ parentId: parent.id, title: name.trim() });
+      showStatus(`Added folder "${name.trim()}".`);
+      await loadBookmarks();
+    } catch (error) {
+      showStatus(`Failed to add folder: ${error.message}`, true);
+      await loadBookmarks();
+    } finally {
+      busy = false;
+    }
+  });
+  return button;
+}
+
 function openBookmark(event, node) {
   if (!isSafeBookmarkUrl(node.url)) {
     event.preventDefault();
@@ -359,6 +387,7 @@ function renderPanel(folder, entries, isRoot, folderPath = "") {
   const title = element("h3", "panel-title", isRoot ? "Bookmarks bar" : folderPath);
   title.title = title.textContent;
   header.append(title);
+  if (editing) header.append(addFolderButton(folder));
   if (editing && !isRoot) header.append(editButton(folder, "title"), deleteButton(folder));
   panel.append(header);
   const list = element("div", "entries");
@@ -379,7 +408,7 @@ function renderPanel(folder, entries, isRoot, folderPath = "") {
 function render() {
   if (!bar) return;
   const query = search.value;
-  const visiblePanels = visibleBookmarkPanels(bar, query);
+  const visiblePanels = visibleBookmarkPanels(bar, query, document.body.classList.contains("keep-folders"));
   const count = visiblePanels.reduce((total, panel) => total + panel.visibleEntries.length, 0);
   const fragment = document.createDocumentFragment();
   for (const column of panelColumns(visiblePanels)) {
@@ -407,10 +436,29 @@ $("#edit-toggle").addEventListener("click", (event) => {
   showStatus(editing ? "Drag items onto their destination. Use the drop area at the end to move an item into a folder." : "");
   render();
 });
-search.addEventListener("input", render);
+search.value = new URLSearchParams(location.search).get("search") ?? "";
+search.addEventListener("input", () => {
+  const url = new URL(location.href);
+  if (search.value) url.searchParams.set("search", search.value);
+  else url.searchParams.delete("search");
+  history.replaceState(null, "", url);
+  render();
+});
 
 for (const name of ["onCreated", "onRemoved", "onChanged", "onMoved", "onChildrenReordered", "onImportEnded"]) {
   chrome.bookmarks[name].addListener(loadBookmarks);
+}
+for (const [id, key, className, fallback] of [["#flag-limit", "limitRows", "limit-rows", false], ["#flag-single-row", "singleRow", "single-row", false], ["#flag-keep-folders", "keepFolders", "keep-folders", false]]) {
+  const checkbox = $(id);
+  const stored = localStorage.getItem(key);
+  checkbox.checked = stored === null ? fallback : stored === "true";
+  document.body.classList.toggle(className, checkbox.checked);
+  checkbox.addEventListener("change", () => {
+    localStorage.setItem(key, String(checkbox.checked));
+    document.body.classList.toggle(className, checkbox.checked);
+    updateScrollbar();
+    render();
+  });
 }
 setColumns(columns);
 loadBookmarks();

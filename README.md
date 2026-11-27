@@ -13,7 +13,7 @@ The extension uses the tabs permission to find the title of an open page when it
 ## Usage
 
 - Every folder under the bookmarks bar is displayed as its own panel. Nested panel titles show the full path, such as `folder1` or `folder1/folder11`. Bookmarks appear in the panel for their direct parent folder; bookmarks directly under the bookmarks bar appear in the **Bookmarks bar** panel.
-- Panels are stacked vertically in order, counting one item for each title and one for each direct bookmark. A new column starts when adding the next panel would exceed 20 items; a panel is never split. The **Bookmarks bar** panel remains last.
+- Panels are stacked vertically per top-level folder: each folder directly under the Bookmarks bar and all of its subfolders share one column. The **Bookmarks bar** panel remains last in its own column.
 - Favicons stored by Chrome are displayed for bookmarks. A fallback icon is used if a favicon is unavailable.
 - Search filters by partial matches in bookmark names, folder names, and URLs. Panels with no matching bookmarks are hidden, including in Edit mode. If a folder name matches, bookmarks in that folder are also shown.
 - Drag a URL from the browser onto a bookmark to add it before that bookmark, or onto **File / Folder** at the bottom of a panel to add it to that folder. This works without entering Edit mode. The title from the drag data or a matching open tab is used when available; otherwise the URL is used as the name.
