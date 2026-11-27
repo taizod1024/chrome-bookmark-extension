@@ -11,7 +11,7 @@ A Chrome extension that displays the bookmarks bar as panels organized by folder
 ## Usage
 
 - Every folder under the bookmarks bar is displayed as its own panel. Nested panel titles show the full path, such as `folder1` or `folder1/folder11`. Bookmarks appear in the panel for their direct parent folder; bookmarks directly under the bookmarks bar appear in the **Bookmarks bar** panel.
-- Consecutive panels are paired vertically when both contain 10 or fewer direct bookmarks; pairing then continues with the next panel. Panels with more than 10 bookmarks occupy a column on their own. The **Bookmarks bar** panel remains last.
+- Panels are stacked vertically in order, counting one item for each title and one for each direct bookmark. A new column starts when adding the next panel would exceed 20 items; a panel is never split. The **Bookmarks bar** panel remains last.
 - Favicons stored by Chrome are displayed for bookmarks. A fallback icon is used if a favicon is unavailable.
 - Search filters by partial matches in bookmark names, folder names, and URLs. If a folder name matches, bookmarks in that folder are also shown.
 - Switch between 4, 6, and 10 columns. Use the horizontal scrollbar above the panels when they do not fit on screen.

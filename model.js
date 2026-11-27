@@ -18,17 +18,19 @@ export function folderPanels(root) {
 
 export function panelColumns(panels) {
   const columns = [];
-  for (let index = 0; index < panels.length;) {
-    const current = panels[index];
-    const next = panels[index + 1];
-    if (current.entries.length <= 10 && next && next.entries.length <= 10) {
-      columns.push([current, next]);
-      index += 2;
-    } else {
-      columns.push([current]);
-      index += 1;
+  let stack = [];
+  let stackCount = 0;
+  for (const panel of panels) {
+    const panelCount = panel.entries.length + 1;
+    if (stack.length && stackCount + panelCount > 20) {
+      columns.push(stack);
+      stack = [];
+      stackCount = 0;
     }
+    stack.push(panel);
+    stackCount += panelCount;
   }
+  if (stack.length) columns.push(stack);
   return columns;
 }
 
