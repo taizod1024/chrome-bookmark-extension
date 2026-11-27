@@ -1,13 +1,22 @@
 {
   "manifest_version": 3,
-  "name": "Bookmark Extension",
+  "name": "Bookmark Panels",
   "version": "1.0.0",
-  "description": "View and edit your bookmarks in panels organized by folder.",
+  "description": "View, search, and edit your bookmarks as folder panels in a single page.",
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
   "permissions": ["bookmarks", "favicon", "tabs"],
   "background": {
     "service_worker": "background.js"
   },
   "action": {
-    "default_title": "Open bookmark extension"
+    "default_title": "Open bookmarks",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png"
+    }
   }
 }
