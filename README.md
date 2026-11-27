@@ -29,4 +29,4 @@ Run `npm test` to execute the logic tests (requires Node.js).
 
 ## Packaging
 
-Chrome runtime files live in `extension/`. Run `npm run zip` to package the entire folder as `chrome-bookmark-extension.zip`; new files added there are included automatically.
+Chrome runtime files live in `extension/`. Run `npm run zip` to package the entire folder into a ZIP named from `package.json`, for example `chrome-bookmark-extension-1.0.0.zip`. New files added to `extension/` are included automatically.

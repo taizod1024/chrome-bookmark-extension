@@ -5,6 +5,6 @@
   "type": "module",
   "scripts": {
     "test": "node --test",
-    "zip": "powershell -NoProfile -Command \"Compress-Archive -Path extension\\* -DestinationPath chrome-bookmark-extension.zip -Force\""
+    "zip": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/package.ps1"
   }
 }
