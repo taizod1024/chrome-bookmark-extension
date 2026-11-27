@@ -14,7 +14,7 @@
     <label class="search"><span class="sr-only">Search bookmarks</span><input id="search" type="search" placeholder="Search by name, folder, or URL"></label>
     <div class="controls">
       <div class="column-control" role="group" aria-label="Column selection">
-        <button id="columns-4" type="button" aria-pressed="false">4 cols</button>
+        <button id="columns-3" type="button" aria-pressed="false">3 cols</button>
         <button id="columns-6" type="button" aria-pressed="false">6 cols</button>
         <button id="columns-10" type="button" aria-pressed="false">10 cols</button>
       </div>
@@ -22,20 +22,11 @@
     </div>
   </header>
   <main>
-    <p id="edit-help" class="edit-help" hidden>Drag items by their handles. Drop onto an item to place it before that item, or use "Move here" to place it at the end of a folder.</p>
+    <p id="edit-help" class="edit-help" hidden>Drag items onto their destination. Use the drop area at the end to move an item into a folder.</p>
     <div id="status" class="status" role="status" aria-live="polite" hidden></div>
     <div id="panel-scrollbar" class="panel-scrollbar" role="region" aria-label="Horizontal panel scrolling" tabindex="0"><div id="panel-scrollbar-content"></div></div>
     <div id="panels" class="panels"></div>
     <p id="empty" class="empty" hidden></p>
   </main>
-  <dialog id="edit-dialog">
-    <form id="edit-form">
-      <h2 id="dialog-title"></h2>
-      <label>Name<input id="edit-name"></label>
-      <label id="url-label">URL<input id="edit-url" type="url"></label>
-      <p id="form-error" class="form-error" role="alert" hidden></p>
-      <div class="dialog-actions"><button id="cancel-edit" type="button">Cancel</button><button class="primary" type="submit">Save</button></div>
-    </form>
-  </dialog>
 </body>
 </html>

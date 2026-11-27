@@ -1,19 +1,18 @@
-import { bookmarkBar, faviconUrl, folderPanels, isSafeBookmarkUrl, matchesEntry, moveDestination, panelColumns } from "./model.js";
+import { bookmarkBar, bookmarkDropIndex, bookmarkFromDrop, faviconUrl, folderPanels, isSafeBookmarkUrl, matchesEntry, panelColumns, panelHeaderDestination, titleForDroppedBookmark, tryMoveDestination } from "./model.js";
 
 const $ = (selector) => document.querySelector(selector);
 const panels = $("#panels");
 const panelScrollbar = $("#panel-scrollbar");
 const panelScrollbarContent = $("#panel-scrollbar-content");
 const search = $("#search");
-const dialog = $("#edit-dialog");
 let bar;
 let editing = false;
-let editingNode;
 let loadVersion = 0;
 let dragId = null;
 let busy = false;
 const storedColumns = Number(localStorage.getItem("columns"));
-let columns = [4, 6, 10].includes(storedColumns) ? storedColumns : 6;
+const columnOptions = [3, 6, 10];
+let columns = [2, 4].includes(storedColumns) ? 3 : columnOptions.includes(storedColumns) ? storedColumns : 6;
 
 function showStatus(message, isError = false) {
   const status = $("#status");
@@ -32,7 +31,7 @@ function element(tag, className, text) {
 function setColumns(value) {
   columns = value;
   localStorage.setItem("columns", String(value));
-  for (const number of [4, 6, 10]) {
+  for (const number of columnOptions) {
     $(`#columns-${number}`).setAttribute("aria-pressed", String(value === number));
   }
   updateScrollbar();
@@ -57,6 +56,27 @@ panels.addEventListener("wheel", (event) => {
 }, { passive: false });
 new ResizeObserver(updateScrollbar).observe(panels);
 
+function hasUrlDrag(dataTransfer) {
+  return dataTransfer && (dataTransfer.types.includes("text/uri-list") || dataTransfer.types.includes("text/plain"));
+}
+
+document.addEventListener("dragenter", (event) => {
+  if (!dragId && !busy && hasUrlDrag(event.dataTransfer)) document.body.classList.add("external-url-drag");
+}, true);
+document.addEventListener("dragleave", (event) => {
+  if (!event.relatedTarget && (event.clientX <= 0 || event.clientY <= 0
+    || event.clientX >= window.innerWidth || event.clientY >= window.innerHeight)) {
+    document.body.classList.remove("external-url-drag");
+  }
+}, true);
+document.addEventListener("drop", (event) => {
+  document.body.classList.remove("external-url-drag");
+  const editable = event.target instanceof Element && event.target.closest("input, textarea, [contenteditable]");
+  if (!dragId && hasUrlDrag(event.dataTransfer) && !editable) {
+    event.preventDefault();
+  }
+}, true);
+
 async function loadBookmarks() {
   const version = ++loadVersion;
   try {
@@ -73,6 +93,7 @@ async function loadBookmarks() {
 
 function makeHandle(node) {
   const handle = element("span", "drag-handle", "⋮⋮");
+  let sourceElement;
   handle.draggable = true;
   handle.title = `Drag to move ${node.title || "Untitled"}`;
   handle.setAttribute("aria-label", handle.title);
@@ -82,41 +103,76 @@ function makeHandle(node) {
       return;
     }
     dragId = node.id;
+    sourceElement = handle.closest(".bookmark-entry, .panel-header");
+    sourceElement?.classList.add("dragging");
     event.dataTransfer.effectAllowed = "move";
     event.dataTransfer.setData("text/plain", node.id);
   });
   handle.addEventListener("dragend", () => {
+    sourceElement?.classList.remove("dragging");
+    sourceElement = null;
     dragId = null;
-    document.querySelectorAll(".drop-active").forEach((item) => item.classList.remove("drop-active"));
+    document.querySelectorAll(".drop-active").forEach((item) => {
+      item.classList.remove("drop-active");
+    });
   });
   return handle;
 }
 
 function dropTarget(target, destination) {
   target.addEventListener("dragover", (event) => {
-    if (!dragId || busy) return;
+    if (busy) return;
+    const external = !dragId && destination.acceptUrl && hasUrlDrag(event.dataTransfer);
+    if (!external && (!dragId || !dropMove(dragId, destination))) {
+      target.classList.remove("drop-active");
+      return;
+    }
     event.preventDefault();
     event.stopPropagation();
-    event.dataTransfer.dropEffect = "move";
+    event.dataTransfer.dropEffect = external ? "copy" : "move";
     target.classList.add("drop-active");
   });
   target.addEventListener("dragleave", (event) => {
-    if (!target.contains(event.relatedTarget)) target.classList.remove("drop-active");
+    if (!target.contains(event.relatedTarget)) {
+      target.classList.remove("drop-active");
+    }
   });
   target.addEventListener("drop", async (event) => {
-    if (!dragId || busy) return;
+    if (busy) return;
+    if (!dragId && destination.acceptUrl && hasUrlDrag(event.dataTransfer)) {
+      event.preventDefault();
+      event.stopPropagation();
+      target.classList.remove("drop-active");
+      await addDroppedBookmark(event.dataTransfer, destination);
+      return;
+    }
+    if (!dragId) return;
+    const sourceId = dragId;
+    const move = dropMove(sourceId, destination);
+    if (!move) {
+      event.preventDefault();
+      event.stopPropagation();
+      target.classList.remove("drop-active");
+      dragId = null;
+      return;
+    }
     event.preventDefault();
     event.stopPropagation();
     target.classList.remove("drop-active");
-    const sourceId = dragId;
     dragId = null;
     try {
-      const move = moveDestination(bar, sourceId, destination.parentId, destination.beforeId);
-      if (!move) return;
       busy = true;
-      await chrome.bookmarks.move(sourceId, move);
-      showStatus("Item moved.");
+      const moved = await chrome.bookmarks.move(sourceId, move);
+      showStatus(`Moved "${moved.title || moved.url || "Untitled folder"}".`);
       await loadBookmarks();
+      const movedElement = [...document.querySelectorAll(".bookmark-entry, .panel-header")]
+        .find((item) => item.dataset.nodeId === sourceId);
+      if (movedElement) {
+        movedElement.classList.add("move-highlight");
+        movedElement.addEventListener("animationend", () => {
+          movedElement.classList.remove("move-highlight");
+        }, { once: true });
+      }
     } catch (error) {
       showStatus(`Failed to move item: ${error.message}`, true);
       await loadBookmarks();
@@ -126,30 +182,131 @@ function dropTarget(target, destination) {
   });
 }
 
-function editButton(node) {
-  const button = element("button", "icon-button", "✎");
+function droppedBookmark(dataTransfer) {
+  const mozData = dataTransfer.getData("text/x-moz-url").split(/\r?\n/);
+  const uriList = dataTransfer.getData("text/uri-list") || mozData[0];
+  const plainText = dataTransfer.getData("text/plain");
+  const bookmark = bookmarkFromDrop(uriList, plainText, mozData[1] || "");
+  const html = dataTransfer.getData("text/html");
+  if (html) {
+    const template = document.createElement("template");
+    template.innerHTML = html;
+    const expectedUrl = new URL(bookmark.url).href;
+    const link = [...template.content.querySelectorAll("a[href]")]
+      .find((anchor) => anchor.href === expectedUrl && anchor.textContent.trim());
+    if (link) bookmark.title = link.textContent.trim();
+  }
+  return bookmark;
+}
+
+async function addDroppedBookmark(dataTransfer, destination) {
+  busy = true;
+  try {
+    const bookmark = droppedBookmark(dataTransfer);
+    if (bookmark.title === bookmark.url) {
+      bookmark.title = titleForDroppedBookmark(bookmark, await chrome.tabs.query({}));
+    }
+    const children = await chrome.bookmarks.getChildren(destination.parentId);
+    const index = bookmarkDropIndex(children, destination.beforeId);
+    await chrome.bookmarks.create({ parentId: destination.parentId, index, ...bookmark });
+    showStatus(`Added "${bookmark.title}".`);
+    await loadBookmarks();
+  } catch (error) {
+    showStatus(`Failed to add bookmark: ${error.message}`, true);
+    await loadBookmarks();
+  } finally {
+    busy = false;
+  }
+}
+
+function dropMove(sourceId, destination) {
+  if (destination.folderHeaderId) return panelHeaderDestination(bar, sourceId, destination.folderHeaderId);
+  return tryMoveDestination(bar, sourceId, destination.parentId, destination.beforeId);
+}
+
+function editButton(node, field) {
+  const isUrl = field === "url";
+  const itemName = node.title || node.url || "Untitled";
+  const button = element("button", isUrl ? "icon-button url-edit-button" : "icon-button name-edit-button", isUrl ? "URL" : "✎");
   button.type = "button";
-  button.title = `Edit ${node.title || "Untitled"}`;
+  button.title = `Edit ${isUrl ? "URL" : "name"} for ${itemName}`;
   button.setAttribute("aria-label", button.title);
-  button.addEventListener("click", () => {
-    editingNode = node;
-    $("#dialog-title").textContent = node.url === undefined ? "Edit folder" : "Edit bookmark";
-    $("#edit-name").value = node.title;
-    $("#edit-url").value = node.url || "";
-    $("#url-label").hidden = node.url === undefined;
-    $("#edit-url").required = node.url !== undefined;
-    $("#form-error").hidden = true;
-    dialog.showModal();
-    $("#edit-name").focus();
+  button.addEventListener("click", async () => {
+    if (busy) return;
+    let value = window.prompt(`Edit ${isUrl ? "URL" : "name"} for "${itemName}":`, isUrl ? node.url : node.title);
+    if (value === null) return;
+    if (isUrl) {
+      const input = document.createElement("input");
+      input.type = "url";
+      input.required = true;
+      input.value = value;
+      if (!input.checkValidity()) {
+        showStatus("Please enter a valid URL.", true);
+        return;
+      }
+      value = input.value;
+    }
+    busy = true;
+    try {
+      await chrome.bookmarks.update(node.id, isUrl ? { url: value } : { title: value });
+      showStatus(isUrl ? `Updated URL for "${itemName}".` : `Updated name for "${itemName}" to "${value}".`);
+      await loadBookmarks();
+    } catch (error) {
+      showStatus(`Failed to save changes: ${error.message}`, true);
+      await loadBookmarks();
+    } finally {
+      busy = false;
+    }
   });
   return button;
 }
 
-function destinationButton(parentId) {
-  const target = element("span", "folder-target", "Move here");
-  target.title = "Drop here to move to the end of this folder";
-  dropTarget(target, { parentId });
-  return target;
+function deleteButton(node) {
+  const isFolder = node.url === undefined;
+  const itemName = node.title || (isFolder ? "Untitled folder" : node.url);
+  const button = element("button", "icon-button delete-button", "×");
+  button.type = "button";
+  button.title = `Delete ${isFolder ? "folder" : "bookmark"} ${itemName}`;
+  button.setAttribute("aria-label", button.title);
+  button.addEventListener("click", async () => {
+    if (busy) return;
+    busy = true;
+    let folderBookmarks = [];
+    try {
+      if (isFolder) {
+        let currentFolder;
+        try {
+          [currentFolder] = await chrome.bookmarks.getSubTree(node.id);
+        } catch (error) {
+          showStatus(`Failed to check folder contents: ${error.message}`, true);
+          await loadBookmarks();
+          return;
+        }
+        const children = currentFolder.children || [];
+        if (children.some((child) => child.url === undefined)) {
+          window.alert("This folder cannot be deleted while it contains child folders.");
+          return;
+        }
+        folderBookmarks = children;
+      }
+      const message = isFolder
+        ? `Delete "${itemName}" and its bookmarks? This cannot be undone.`
+        : `Delete "${itemName}"? This cannot be undone.`;
+      if (!window.confirm(message)) return;
+      for (const bookmark of folderBookmarks) {
+        await chrome.bookmarks.remove(bookmark.id);
+      }
+      await chrome.bookmarks.remove(node.id);
+      showStatus(`Deleted "${itemName}".`);
+      await loadBookmarks();
+    } catch (error) {
+      showStatus(`Failed to delete ${isFolder ? "folder" : "bookmark"}: ${error.message}`, true);
+      await loadBookmarks();
+    } finally {
+      busy = false;
+    }
+  });
+  return button;
 }
 
 function openBookmark(event, node) {
@@ -171,11 +328,10 @@ function bookmarkIcon(url) {
 }
 
 function renderEntry(node) {
-  const row = element("div", "entry bookmark-entry");
-  if (editing) {
-    row.append(makeHandle(node));
-    dropTarget(row, { parentId: node.parentId, beforeId: node.id });
-  }
+  const row = element("div", editing ? "entry bookmark-entry editing-entry" : "entry bookmark-entry");
+  row.dataset.nodeId = node.id;
+  if (editing) row.append(makeHandle(node));
+  dropTarget(row, { parentId: node.parentId, beforeId: node.id, acceptUrl: true });
   row.append(bookmarkIcon(node.url));
   const content = element("div", "entry-content");
   const link = element("a", "entry-title", node.title || node.url);
@@ -187,24 +343,22 @@ function renderEntry(node) {
   link.addEventListener("auxclick", (event) => openBookmark(event, node));
   content.append(link);
   row.append(content);
-  if (editing) row.append(editButton(node));
+  if (editing) row.append(editButton(node, "title"), editButton(node, "url"), deleteButton(node));
   return row;
 }
 
 function renderPanel(folder, entries, isRoot, folderPath = "") {
   const panel = element("section", "panel");
   const header = element("div", "panel-header");
-  if (editing && !isRoot) {
-    header.append(makeHandle(folder));
-    dropTarget(header, { parentId: folder.parentId, beforeId: folder.id });
+  header.dataset.nodeId = folder.id;
+  if (editing) {
+    if (!isRoot) header.append(makeHandle(folder));
+    dropTarget(header, { folderHeaderId: folder.id });
   }
   const title = element("h3", "panel-title", isRoot ? "Bookmarks bar" : folderPath);
   title.title = title.textContent;
   header.append(title);
-  if (editing) {
-    header.append(destinationButton(folder.id));
-    if (!isRoot) header.append(editButton(folder));
-  }
+  if (editing && !isRoot) header.append(editButton(folder, "title"), deleteButton(folder));
   panel.append(header);
   const list = element("div", "entries");
   for (const entry of entries) list.append(renderEntry(entry));
@@ -212,6 +366,12 @@ function renderPanel(folder, entries, isRoot, folderPath = "") {
     list.append(element("p", "panel-empty", search.value.trim() ? "No matching bookmarks" : "No bookmarks"));
   }
   panel.append(list);
+  const endDrop = element("div", editing ? "folder-end-drop" : "folder-end-drop external-only-drop", "File / Folder");
+  endDrop.title = isRoot
+    ? "Drop an item or URL here to add it to the end of the Bookmarks bar"
+    : "Drop an item or URL here to add it to the end of this folder";
+  dropTarget(endDrop, { parentId: folder.id, acceptUrl: true });
+  panel.append(endDrop);
   return panel;
 }
 
@@ -259,9 +419,9 @@ function render() {
   empty.textContent = "No matching bookmarks.";
 }
 
-$("#columns-4").addEventListener("click", () => setColumns(4));
-$("#columns-6").addEventListener("click", () => setColumns(6));
-$("#columns-10").addEventListener("click", () => setColumns(10));
+for (const number of columnOptions) {
+  $(`#columns-${number}`).addEventListener("click", () => setColumns(number));
+}
 $("#edit-toggle").addEventListener("click", (event) => {
   editing = !editing;
   event.currentTarget.setAttribute("aria-pressed", String(editing));
@@ -271,25 +431,6 @@ $("#edit-toggle").addEventListener("click", (event) => {
   render();
 });
 search.addEventListener("input", render);
-$("#cancel-edit").addEventListener("click", () => dialog.close());
-$("#edit-form").addEventListener("submit", async (event) => {
-  event.preventDefault();
-  if (busy || !editingNode) return;
-  const changes = { title: $("#edit-name").value };
-  if (editingNode.url !== undefined) changes.url = $("#edit-url").value;
-  busy = true;
-  try {
-    await chrome.bookmarks.update(editingNode.id, changes);
-    dialog.close();
-    showStatus("Changes saved.");
-    await loadBookmarks();
-  } catch (error) {
-    $("#form-error").textContent = `Failed to save changes: ${error.message}`;
-    $("#form-error").hidden = false;
-  } finally {
-    busy = false;
-  }
-});
 
 for (const name of ["onCreated", "onRemoved", "onChanged", "onMoved", "onChildrenReordered", "onImportEnded"]) {
   chrome.bookmarks[name].addListener(loadBookmarks);

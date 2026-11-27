@@ -8,14 +8,17 @@ A Chrome extension that displays the bookmarks bar as panels organized by folder
 2. Select **Load unpacked** and choose this repository's folder.
 3. Click the extension icon in the toolbar to open the bookmark view in a new tab, or switch to its existing tab if it is already open.
 
+The extension uses the tabs permission to find the title of an open page when its URL is dropped. After updating the extension, reload it and accept any new permission prompt.
+
 ## Usage
 
 - Every folder under the bookmarks bar is displayed as its own panel. Nested panel titles show the full path, such as `folder1` or `folder1/folder11`. Bookmarks appear in the panel for their direct parent folder; bookmarks directly under the bookmarks bar appear in the **Bookmarks bar** panel.
 - Panels are stacked vertically in order, counting one item for each title and one for each direct bookmark. A new column starts when adding the next panel would exceed 20 items; a panel is never split. The **Bookmarks bar** panel remains last.
 - Favicons stored by Chrome are displayed for bookmarks. A fallback icon is used if a favicon is unavailable.
 - Search filters by partial matches in bookmark names, folder names, and URLs. If a folder name matches, bookmarks in that folder are also shown.
-- Switch between 4, 6, and 10 columns. Use the horizontal scrollbar above the panels when they do not fit on screen.
-- Select **Edit** to edit names and URLs. Drag an item by its handle and drop it onto another item to place it immediately before that item. Drop it on **Move here** beside a folder name to place it at the end of that folder. Drop on a panel header to reorder folders directly under the bookmarks bar. Drop on the **Bookmarks bar** panel to move an item directly under the bar. All destination folders remain visible while searching.
+- Drag a URL from the browser onto a bookmark to add it before that bookmark, or onto **File / Folder** at the bottom of a panel to add it to that folder. This works without entering Edit mode. The title from the drag data or a matching open tab is used when available; otherwise the URL is used as the name.
+- Switch between 3, 6, and 10 columns. Use the horizontal scrollbar above the panels when they do not fit on screen.
+- Select **Edit** to change names or bookmark URLs using separate buttons and browser prompts, or to delete bookmarks and folders. A folder containing child folders cannot be deleted; an error dialog is shown. Deleting a folder with bookmarks removes those bookmarks after confirmation. Drag an item onto another item of the same kind to move it to that item's original position; between folders it is inserted before the target. Drop a bookmark on a folder name to move it to the end of that folder. Use **File / Folder** at the bottom of a folder panel to move an item to the end of that folder. The same area in the **Bookmarks bar** panel accepts both bookmarks and folders; folders appear before the **Bookmarks bar** panel. All destination folders remain visible while searching.
 - Changes made in Chrome are reflected in the view. Edits and moves are saved to Chrome immediately.
 
 For safety, `javascript:` and `data:` bookmarks cannot be opened from this view.

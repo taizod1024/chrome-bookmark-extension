@@ -59,6 +59,30 @@ export function isSafeBookmarkUrl(url) {
   }
 }
 
+export function bookmarkFromDrop(uriList, plainText, title = "") {
+  const uri = uriList.split(/\r?\n/).map((line) => line.trim())
+    .find((line) => line && !line.startsWith("#"));
+  const url = uri || plainText.trim();
+  if (!isSafeBookmarkUrl(url)) throw new Error("The dropped item is not a valid, safe URL.");
+  const text = plainText.trim();
+  const fallbackTitle = uri && text && !isSafeBookmarkUrl(text) && !/[\r\n]/.test(text) ? text : url;
+  return { url, title: title.trim() || fallbackTitle };
+}
+
+export function titleForDroppedBookmark(bookmark, tabs) {
+  if (bookmark.title !== bookmark.url) return bookmark.title;
+  const url = new URL(bookmark.url).href;
+  const tab = tabs.find((item) => item.url === url && item.title?.trim());
+  return tab ? tab.title.trim() : bookmark.title;
+}
+
+export function bookmarkDropIndex(children, beforeId) {
+  if (!beforeId) return children.length;
+  const index = children.findIndex((child) => child.id === beforeId && child.url !== undefined);
+  if (index < 0) throw new Error("Destination bookmark not found.");
+  return index;
+}
+
 export function faviconUrl(pageUrl, resourceUrl) {
   const url = new URL(resourceUrl);
   url.searchParams.set("pageUrl", pageUrl);
@@ -66,22 +90,52 @@ export function faviconUrl(pageUrl, resourceUrl) {
   return url.toString();
 }
 
-export function moveDestination(root, sourceId, parentId, beforeId) {
+function resolveMoveDestination(root, sourceId, parentId, beforeId) {
   const source = findNode(root, sourceId);
   const parent = findNode(root, parentId);
   if (!source || !parent || parent.url !== undefined || source.id === root.id) {
-    throw new Error("Source or destination not found.");
+    return { error: "Source or destination not found.", move: null };
   }
   if (source.url === undefined && findNode(source, parentId)) {
-    throw new Error("A folder cannot be moved into itself or one of its descendants.");
+    return { error: "A folder cannot be moved into itself or one of its descendants.", move: null };
   }
   const children = parent.children || [];
-  const index = beforeId ? children.findIndex((child) => child.id === beforeId) : children.length;
-  if (index < 0) throw new Error("Destination item not found.");
-  if (source.parentId === parentId) {
-    const oldIndex = children.findIndex((child) => child.id === sourceId);
-    if (oldIndex < 0) throw new Error("Source position not found.");
-    if (oldIndex === index || oldIndex + 1 === index) return null;
+  const targetIndex = beforeId ? children.findIndex((child) => child.id === beforeId) : children.length;
+  if (targetIndex < 0) return { error: "Destination item not found.", move: null };
+  const target = beforeId ? children[targetIndex] : null;
+  if (target && (source.url === undefined) !== (target.url === undefined)) {
+    return { error: "Bookmarks and folders cannot be reordered together.", move: null };
   }
-  return { parentId, index };
+  const oldIndex = source.parentId === parentId
+    ? children.findIndex((child) => child.id === sourceId)
+    : -1;
+  if (source.parentId === parentId) {
+    if (oldIndex < 0) return { error: "Source position not found.", move: null };
+  }
+  const insertAfter = target && oldIndex >= 0 && oldIndex < targetIndex;
+  const index = targetIndex + (insertAfter ? 1 : 0);
+  if (source.parentId === parentId) {
+    if (oldIndex === index || oldIndex + 1 === index) return { error: null, move: null };
+  }
+  return { error: null, move: { parentId, index } };
+}
+
+export function moveDestination(root, sourceId, parentId, beforeId) {
+  const result = resolveMoveDestination(root, sourceId, parentId, beforeId);
+  if (result.error) throw new Error(result.error);
+  return result.move;
+}
+
+export function tryMoveDestination(root, sourceId, parentId, beforeId) {
+  const result = resolveMoveDestination(root, sourceId, parentId, beforeId);
+  return result.error ? null : result.move;
+}
+
+export function panelHeaderDestination(root, sourceId, folderId) {
+  const source = findNode(root, sourceId);
+  const folder = findNode(root, folderId);
+  if (!source || !folder || folder.url !== undefined) return null;
+  if (source.url !== undefined) return tryMoveDestination(root, sourceId, folder.id);
+  if (folder.id === root.id) return null;
+  return tryMoveDestination(root, sourceId, folder.parentId, folder.id);
 }
