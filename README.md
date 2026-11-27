@@ -5,7 +5,7 @@ A Chrome extension that displays the bookmarks bar as panels organized by folder
 ## Installation
 
 1. Open `chrome://extensions` in Chrome and enable Developer mode.
-2. Select **Load unpacked** and choose this repository's folder.
+2. Select **Load unpacked** and choose the `extension` folder.
 3. Click the extension icon in the toolbar to open the bookmark view in a new tab, or switch to its existing tab if it is already open.
 
 The extension uses the tabs permission to find the title of an open page when its URL is dropped. After updating the extension, reload it and accept any new permission prompt.
@@ -26,3 +26,7 @@ For safety, `javascript:` and `data:` bookmarks cannot be opened from this view.
 ## Tests
 
 Run `npm test` to execute the logic tests (requires Node.js).
+
+## Packaging
+
+Chrome runtime files live in `extension/`. Run `npm run zip` to package the entire folder as `chrome-bookmark-extension.zip`; new files added there are included automatically.

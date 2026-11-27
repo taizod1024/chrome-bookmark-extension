@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node --test"
+    "test": "node --test",
+    "zip": "powershell -NoProfile -Command \"Compress-Archive -Path extension\\* -DestinationPath chrome-bookmark-extension.zip -Force\""
   }
 }
