@@ -26,9 +26,9 @@ test("finds the bookmark bar by folder type or legacy ID", () => {
 });
 
 test("lists every nested folder as a panel with its full path", () => {
-  assert.deepEqual(folderPanels(bar).map(({ folder, path }) => [folder.id, path.join("/")]), [
+  assert.deepEqual(folderPanels(bar).map(({ folder, path }) => [folder.id, path.join(" / ")]), [
     ["f", "Work"],
-    ["g", "Work/Nested"],
+    ["g", "Work / Nested"],
     ["h", "Other"],
   ]);
 });

@@ -38,7 +38,7 @@ export function visibleBookmarkPanels(root, query, keepFolders = false) {
   const panels = [];
   const showEmpty = keepFolders || !query.trim();
   for (const { folder, path, group } of folderPanels(root)) {
-    const folderPath = path.join("/");
+    const folderPath = path.join(" / ");
     const entries = (folder.children || []).filter((node) => node.url !== undefined);
     const visibleEntries = entries.filter((node) => matchesEntry(node, query, folderPath));
     if (showEmpty || visibleEntries.length) {
