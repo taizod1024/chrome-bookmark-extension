@@ -14,6 +14,7 @@ Features
 - Instant AND search: type several words and each must match the title, folder name, or URL.
 - Keep folders: keep non-matching folders visible while searching.
 - Edit mode: drag and drop bookmarks between folders, add folders, rename, and delete.
+- When a dropped URL has no title, use the title of a matching open tab for the new bookmark.
 - Layout options: 3/6/10 columns, bookmarks per panel (10/20/30), equal height, single scrolling row.
 - Favicons for every bookmark.
 - Works entirely offline. No accounts, no tracking.
@@ -26,7 +27,7 @@ Display and manage the user's Chrome bookmarks as folder panels on a single page
 ## Permission justifications
 - bookmarks: read the bookmark tree and create, move, rename, and delete bookmarks and folders as the user requests.
 - favicon: show site icons next to bookmarks.
-- tabs: find and focus an already-open extension page, and read open tab titles to name bookmarks created by dragging a URL.
+- tabs: read open-tab URLs and titles to find the tab matching a user-dropped URL and use its title as the bookmark name. The data is processed locally; no tab data is stored or transmitted.
 
 ## Privacy
 This extension does not collect, transmit, or sell any user data. All data stays in the browser; preferences are stored locally with localStorage.

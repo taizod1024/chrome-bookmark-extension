@@ -1,1 +1,1 @@
-Required to find and focus the extension's page if it is already open (instead of opening duplicates), and to read the titles of open tabs so that a URL dragged onto a folder is saved as a bookmark with a proper title. Tab data is not stored or transmitted.
+Required to read the URL and title properties of open tabs, match a user-dropped URL to an open tab, and use that tab's title as the bookmark name when the drag data has no title. Tab data is processed locally and is not stored or transmitted. The tabs permission is not needed to create or focus the extension's own tab.
