@@ -1,0 +1,1 @@
+Required to read the user's bookmark tree to display it as folder panels, and to create, move, rename, and delete bookmarks and folders when the user edits them in the extension page.

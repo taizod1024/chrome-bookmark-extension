@@ -1,0 +1,1 @@
+Required to show each bookmarked site's icon next to its title in the panels. Icons are fetched from the browser's local favicon cache via the _favicon endpoint.

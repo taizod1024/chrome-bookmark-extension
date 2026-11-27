@@ -1,0 +1,1 @@
+Required to find and focus the extension's page if it is already open (instead of opening duplicates), and to read the titles of open tabs so that a URL dragged onto a folder is saved as a bookmark with a proper title. Tab data is not stored or transmitted.

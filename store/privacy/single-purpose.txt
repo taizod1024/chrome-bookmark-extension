@@ -1,0 +1,1 @@
+Display and manage the user's Chrome bookmarks as folder panels on a single page.
