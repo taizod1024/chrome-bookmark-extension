@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { bookmarkBar, bookmarkDropIndex, bookmarkFromDrop, faviconUrl, folderPanels, isSafeBookmarkUrl, matchesEntry, moveDestination, panelColumns, panelHeaderDestination, titleForDroppedBookmark, tryMoveDestination } from "./model.js";
+import { bookmarkBar, bookmarkDropIndex, bookmarkFromDrop, faviconUrl, folderPanels, isSafeBookmarkUrl, matchesEntry, moveDestination, panelColumns, panelHeaderDestination, titleForDroppedBookmark, tryMoveDestination, visibleBookmarkPanels } from "./model.js";
 
 const bar = {
   id: "1",
@@ -60,6 +60,16 @@ test("searches titles, URLs, and ancestor folders case-insensitively", () => {
   assert.equal(matchesEntry(gamma, "WORK", "Work/Nested"), true);
   assert.equal(matchesEntry(gamma, "missing", "Work/Nested"), false);
   assert.equal(matchesEntry(gamma, " "), true);
+});
+
+test("search hides panels with no matching bookmarks", () => {
+  const ids = (query) => visibleBookmarkPanels(bar, query).map(({ folder }) => folder.id);
+  assert.deepEqual(ids(" "), ["f", "g", "h", "1"]);
+  assert.deepEqual(ids("nested"), ["g"]);
+  assert.deepEqual(ids("work"), ["f", "g"]);
+  assert.deepEqual(ids("alpha"), ["1"]);
+  assert.deepEqual(ids("other"), []);
+  assert.deepEqual(ids("missing"), []);
 });
 
 test("uses Chrome's pre-removal insertion indices for both directions", () => {

@@ -41,6 +41,24 @@ export function matchesEntry(node, query, panelTitle = "") {
     .some((value) => value.toLocaleLowerCase().includes(needle));
 }
 
+export function visibleBookmarkPanels(root, query) {
+  const panels = [];
+  for (const { folder, path } of folderPanels(root)) {
+    const folderPath = path.join("/");
+    const entries = (folder.children || []).filter((node) => node.url !== undefined);
+    const visibleEntries = entries.filter((node) => matchesEntry(node, query, folderPath));
+    if (!query.trim() || visibleEntries.length) {
+      panels.push({ folder, path: folderPath, entries, visibleEntries, isRoot: false });
+    }
+  }
+  const entries = (root.children || []).filter((node) => node.url !== undefined);
+  const visibleEntries = entries.filter((node) => matchesEntry(node, query));
+  if (!query.trim() || visibleEntries.length) {
+    panels.push({ folder: root, path: "", entries, visibleEntries, isRoot: true });
+  }
+  return panels;
+}
+
 function findNode(root, id) {
   if (root.id === id) return root;
   for (const child of root.children || []) {

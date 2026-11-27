@@ -1,4 +1,4 @@
-import { bookmarkBar, bookmarkDropIndex, bookmarkFromDrop, faviconUrl, folderPanels, isSafeBookmarkUrl, matchesEntry, panelColumns, panelHeaderDestination, titleForDroppedBookmark, tryMoveDestination } from "./model.js";
+import { bookmarkBar, bookmarkDropIndex, bookmarkFromDrop, faviconUrl, isSafeBookmarkUrl, panelColumns, panelHeaderDestination, titleForDroppedBookmark, tryMoveDestination, visibleBookmarkPanels } from "./model.js";
 
 const $ = (selector) => document.querySelector(selector);
 const panels = $("#panels");
@@ -17,6 +17,7 @@ let columns = [2, 4].includes(storedColumns) ? 3 : columnOptions.includes(stored
 function showStatus(message, isError = false) {
   const status = $("#status");
   status.textContent = message;
+  status.title = message;
   status.classList.toggle("error", isError);
   status.hidden = !message;
 }
@@ -378,31 +379,8 @@ function renderPanel(folder, entries, isRoot, folderPath = "") {
 function render() {
   if (!bar) return;
   const query = search.value;
-  const children = bar.children || [];
-  const rootEntries = children.filter((node) => node.url !== undefined);
-  const matchingRoot = rootEntries.filter((node) => matchesEntry(node, query));
-  let count = matchingRoot.length;
-  const visiblePanels = [];
-  for (const { folder, path } of folderPanels(bar)) {
-    const folderPath = path.join("/");
-    const entries = (folder.children || [])
-      .filter((node) => node.url !== undefined);
-    const matching = entries.filter((node) => matchesEntry(node, query, folderPath));
-    count += matching.length;
-    const folderMatches = query.trim() && folderPath.toLocaleLowerCase().includes(query.trim().toLocaleLowerCase());
-    if (editing || !query.trim() || matching.length || folderMatches) {
-      visiblePanels.push({
-        folder,
-        path: folderPath,
-        entries,
-        visibleEntries: editing ? entries.filter((node) => matchesEntry(node, query, folderPath)) : matching,
-        isRoot: false,
-      });
-    }
-  }
-  if (editing || !query.trim() || matchingRoot.length) {
-    visiblePanels.push({ folder: bar, path: "", entries: rootEntries, visibleEntries: matchingRoot, isRoot: true });
-  }
+  const visiblePanels = visibleBookmarkPanels(bar, query);
+  const count = visiblePanels.reduce((total, panel) => total + panel.visibleEntries.length, 0);
   const fragment = document.createDocumentFragment();
   for (const column of panelColumns(visiblePanels)) {
     const columnElement = element("div", "panel-column");
@@ -426,8 +404,7 @@ $("#edit-toggle").addEventListener("click", (event) => {
   editing = !editing;
   event.currentTarget.setAttribute("aria-pressed", String(editing));
   event.currentTarget.textContent = editing ? "Done" : "Edit";
-  $("#edit-help").hidden = !editing;
-  showStatus("");
+  showStatus(editing ? "Drag items onto their destination. Use the drop area at the end to move an item into a folder." : "");
   render();
 });
 search.addEventListener("input", render);
