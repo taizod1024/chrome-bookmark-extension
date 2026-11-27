@@ -1,13 +1,13 @@
 {
   "manifest_version": 3,
-  "name": "ブックマーク・パネル",
+  "name": "chrome bookmark extension",
   "version": "1.0.0",
-  "description": "ブックマークバーをフォルダごとのパネルで表示・編集します。",
+  "description": "View and edit your bookmarks in panels organized by folder.",
   "permissions": ["bookmarks", "favicon"],
   "background": {
     "service_worker": "background.js"
   },
   "action": {
-    "default_title": "ブックマーク・パネルを開く"
+    "default_title": "Open chrome bookmark extension"
   }
 }

@@ -1,25 +1,25 @@
-# ブックマーク・パネル
+# chrome bookmark extension
 
-Chrome のブックマークバーを、フォルダごとのパネルで表示する拡張機能です。
-データは Chrome のブックマークを直接読み書きし、外部へ送信しません。
+A Chrome extension that displays the bookmarks bar as panels organized by folder. It reads and writes bookmarks directly in Chrome and does not send bookmark data elsewhere.
 
-## インストール
+## Installation
 
-1. Chrome で `chrome://extensions` を開き、「デベロッパー モード」を有効にします。
-2. 「パッケージ化されていない拡張機能を読み込む」から、このリポジトリのフォルダを選択します。
-3. ツールバーの拡張機能アイコンをクリックすると、一覧が新しいタブで開きます。
+1. Open `chrome://extensions` in Chrome and enable Developer mode.
+2. Select **Load unpacked** and choose this repository's folder.
+3. Click the extension icon in the toolbar to open the bookmark view in a new tab.
 
-## 使い方
+## Usage
 
-- ブックマークバー直下のフォルダをパネルとして表示します。子フォルダ内のブックマークは親パネルにまとめ、フォルダのパスを表示します。バー直下のブックマークは「ブックマークバー」パネルに表示します。
-- ブックマークには Chrome が保持する favicon を表示します。アイコンが取得できない場合は代替アイコンを表示します。
-- 検索欄では、名前、フォルダ名、URL の部分一致で絞り込みます。フォルダ名が一致した場合は、そのフォルダ内のブックマークも表示します。
-- 6列・10列を切り替えられます。画面に収まらない場合はパネルの上に表示される横スクロールバーを使えます。
-- 「編集モード」で名前や URL を編集できます。ドラッグハンドルを使い、項目の上にドロップするとその項目の直前に移動し、フォルダ名の右側の「ここに移動」にドロップするとそのフォルダの末尾へ移動します。パネルのヘッダーにドロップするとバー直下のフォルダを並べ替えられます。「ブックマークバー」パネルの移動先へドロップするとバー直下へ移動します。検索中も移動先のフォルダはすべて表示します。
-- Chrome 側で変更されたブックマークは画面にも反映されます。編集内容や移動は即座に Chrome に保存されます。
+- Every folder under the bookmarks bar is displayed as its own panel. Nested panel titles show the full path, such as `folder1` or `folder1/folder11`. Bookmarks appear in the panel for their direct parent folder; bookmarks directly under the bookmarks bar appear in the **Bookmarks bar** panel.
+- Consecutive panels are paired vertically when both contain 10 or fewer direct bookmarks; pairing then continues with the next panel. Panels with more than 10 bookmarks occupy a column on their own. The **Bookmarks bar** panel remains last.
+- Favicons stored by Chrome are displayed for bookmarks. A fallback icon is used if a favicon is unavailable.
+- Search filters by partial matches in bookmark names, folder names, and URLs. If a folder name matches, bookmarks in that folder are also shown.
+- Switch between 4, 6, and 10 columns. Use the horizontal scrollbar above the panels when they do not fit on screen.
+- Select **Edit** to edit names and URLs. Drag an item by its handle and drop it onto another item to place it immediately before that item. Drop it on **Move here** beside a folder name to place it at the end of that folder. Drop on a panel header to reorder folders directly under the bookmarks bar. Drop on the **Bookmarks bar** panel to move an item directly under the bar. All destination folders remain visible while searching.
+- Changes made in Chrome are reflected in the view. Edits and moves are saved to Chrome immediately.
 
-安全のため、`javascript:` と `data:` のブックマークはこの画面から開けません。
+For safety, `javascript:` and `data:` bookmarks cannot be opened from this view.
 
-## テスト
+## Tests
 
-Node.js がインストールされていれば、`npm test` でロジックのテストを実行できます。
+Run `npm test` to execute the logic tests (requires Node.js).

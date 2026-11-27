@@ -1,4 +1,4 @@
-import { bookmarkBar, faviconUrl, flattenFolder, isSafeBookmarkUrl, matchesEntry, moveDestination } from "./model.js";
+import { bookmarkBar, faviconUrl, folderPanels, isSafeBookmarkUrl, matchesEntry, moveDestination, panelColumns } from "./model.js";
 
 const $ = (selector) => document.querySelector(selector);
 const panels = $("#panels");
@@ -12,7 +12,8 @@ let editingNode;
 let loadVersion = 0;
 let dragId = null;
 let busy = false;
-let columns = localStorage.getItem("columns") === "10" ? 10 : 6;
+const storedColumns = Number(localStorage.getItem("columns"));
+let columns = [4, 6, 10].includes(storedColumns) ? storedColumns : 6;
 
 function showStatus(message, isError = false) {
   const status = $("#status");
@@ -31,21 +32,29 @@ function element(tag, className, text) {
 function setColumns(value) {
   columns = value;
   localStorage.setItem("columns", String(value));
-  panels.style.setProperty("--columns", value);
-  for (const number of [6, 10]) {
+  for (const number of [4, 6, 10]) {
     $(`#columns-${number}`).setAttribute("aria-pressed", String(value === number));
   }
   updateScrollbar();
 }
 
 function updateScrollbar() {
-  panelScrollbarContent.style.width = `${panels.scrollWidth}px`;
-  panelScrollbar.hidden = panels.scrollWidth <= panels.clientWidth;
+  const panelWidth = Math.max(100, (panels.clientWidth - 4 * (columns - 1)) / columns);
+  panels.style.setProperty("--panel-width", `${panelWidth}px`);
+  const scrollableWidth = Math.max(0, panels.scrollWidth - panels.clientWidth);
+  panelScrollbarContent.style.width = `${panelScrollbar.clientWidth + scrollableWidth}px`;
   panelScrollbar.scrollLeft = panels.scrollLeft;
 }
 
 panelScrollbar.addEventListener("scroll", () => { panels.scrollLeft = panelScrollbar.scrollLeft; });
 panels.addEventListener("scroll", () => { panelScrollbar.scrollLeft = panels.scrollLeft; });
+panels.addEventListener("wheel", (event) => {
+  const maxScrollLeft = panels.scrollWidth - panels.clientWidth;
+  const nextScrollLeft = Math.max(0, Math.min(maxScrollLeft, panels.scrollLeft + event.deltaY));
+  if (event.deltaY === 0 || nextScrollLeft === panels.scrollLeft) return;
+  event.preventDefault();
+  panels.scrollLeft = nextScrollLeft;
+}, { passive: false });
 new ResizeObserver(updateScrollbar).observe(panels);
 
 async function loadBookmarks() {
@@ -54,18 +63,18 @@ async function loadBookmarks() {
     const tree = await chrome.bookmarks.getTree();
     if (version !== loadVersion) return;
     const nextBar = bookmarkBar(tree);
-    if (!nextBar) throw new Error("ブックマークバーが見つかりません。");
+    if (!nextBar) throw new Error("Bookmark bar not found.");
     bar = nextBar;
     render();
   } catch (error) {
-    if (version === loadVersion) showStatus(`読み込みに失敗しました: ${error.message}`, true);
+    if (version === loadVersion) showStatus(`Failed to load bookmarks: ${error.message}`, true);
   }
 }
 
 function makeHandle(node) {
   const handle = element("span", "drag-handle", "⋮⋮");
   handle.draggable = true;
-  handle.title = `${node.title || "無題"}をドラッグして移動`;
+  handle.title = `Drag to move ${node.title || "Untitled"}`;
   handle.setAttribute("aria-label", handle.title);
   handle.addEventListener("dragstart", (event) => {
     if (busy) {
@@ -106,10 +115,10 @@ function dropTarget(target, destination) {
       if (!move) return;
       busy = true;
       await chrome.bookmarks.move(sourceId, move);
-      showStatus("移動しました。");
+      showStatus("Item moved.");
       await loadBookmarks();
     } catch (error) {
-      showStatus(`移動に失敗しました: ${error.message}`, true);
+      showStatus(`Failed to move item: ${error.message}`, true);
       await loadBookmarks();
     } finally {
       busy = false;
@@ -120,11 +129,11 @@ function dropTarget(target, destination) {
 function editButton(node) {
   const button = element("button", "icon-button", "✎");
   button.type = "button";
-  button.title = `${node.title || "無題"}を編集`;
+  button.title = `Edit ${node.title || "Untitled"}`;
   button.setAttribute("aria-label", button.title);
   button.addEventListener("click", () => {
     editingNode = node;
-    $("#dialog-title").textContent = node.url === undefined ? "フォルダを編集" : "ブックマークを編集";
+    $("#dialog-title").textContent = node.url === undefined ? "Edit folder" : "Edit bookmark";
     $("#edit-name").value = node.title;
     $("#edit-url").value = node.url || "";
     $("#url-label").hidden = node.url === undefined;
@@ -137,8 +146,8 @@ function editButton(node) {
 }
 
 function destinationButton(parentId) {
-  const target = element("span", "folder-target", "ここに移動");
-  target.title = "ここにドロップすると末尾に移動";
+  const target = element("span", "folder-target", "Move here");
+  target.title = "Drop here to move to the end of this folder";
   dropTarget(target, { parentId });
   return target;
 }
@@ -146,7 +155,7 @@ function destinationButton(parentId) {
 function openBookmark(event, node) {
   if (!isSafeBookmarkUrl(node.url)) {
     event.preventDefault();
-    showStatus("安全でない、または無効な URL は開けません。", true);
+    showStatus("This URL is invalid or unsafe and cannot be opened.", true);
   }
 }
 
@@ -161,46 +170,35 @@ function bookmarkIcon(url) {
   return icon;
 }
 
-function renderEntry(entry) {
-  const { node, path } = entry;
-  const folder = node.url === undefined;
-  const row = element("div", `entry ${folder ? "folder-entry" : "bookmark-entry"}`);
+function renderEntry(node) {
+  const row = element("div", "entry bookmark-entry");
   if (editing) {
     row.append(makeHandle(node));
     dropTarget(row, { parentId: node.parentId, beforeId: node.id });
   }
-  row.append(folder ? element("span", "entry-icon", "▰") : bookmarkIcon(node.url));
+  row.append(bookmarkIcon(node.url));
   const content = element("div", "entry-content");
-  if (folder) {
-    content.append(element("span", "entry-title", node.title || "無題のフォルダ"));
-  } else {
-    const link = element("a", "entry-title", node.title || node.url);
-    link.href = isSafeBookmarkUrl(node.url) ? node.url : "#";
-    link.target = "_blank";
-    link.rel = "noopener noreferrer";
-    link.title = node.url;
-    link.addEventListener("click", (event) => openBookmark(event, node));
-    link.addEventListener("auxclick", (event) => openBookmark(event, node));
-    content.append(link);
-  }
-  if (path.length) content.append(element("span", "path", path.join(" / ")));
+  const link = element("a", "entry-title", node.title || node.url);
+  link.href = isSafeBookmarkUrl(node.url) ? node.url : "#";
+  link.target = "_blank";
+  link.rel = "noopener noreferrer";
+  link.title = node.url;
+  link.addEventListener("click", (event) => openBookmark(event, node));
+  link.addEventListener("auxclick", (event) => openBookmark(event, node));
+  content.append(link);
   row.append(content);
-  if (editing) {
-    if (folder) row.append(destinationButton(node.id));
-    row.append(editButton(node));
-  }
+  if (editing) row.append(editButton(node));
   return row;
 }
 
-function renderPanel(folder, entries, isRoot) {
+function renderPanel(folder, entries, isRoot, folderPath = "") {
   const panel = element("section", "panel");
   const header = element("div", "panel-header");
   if (editing && !isRoot) {
     header.append(makeHandle(folder));
-    dropTarget(header, { parentId: bar.id, beforeId: folder.id });
+    dropTarget(header, { parentId: folder.parentId, beforeId: folder.id });
   }
-  header.append(element("span", "panel-icon", isRoot ? "◇" : "▰"));
-  const title = element("h3", "panel-title", isRoot ? "ブックマークバー" : folder.title || "無題のフォルダ");
+  const title = element("h3", "panel-title", isRoot ? "Bookmarks bar" : folderPath);
   title.title = title.textContent;
   header.append(title);
   if (editing) {
@@ -210,7 +208,9 @@ function renderPanel(folder, entries, isRoot) {
   panel.append(header);
   const list = element("div", "entries");
   for (const entry of entries) list.append(renderEntry(entry));
-  if (!entries.length) list.append(element("p", "panel-empty", "ブックマークはありません"));
+  if (!entries.length) {
+    list.append(element("p", "panel-empty", search.value.trim() ? "No matching bookmarks" : "No bookmarks"));
+  }
   panel.append(list);
   return panel;
 }
@@ -219,38 +219,53 @@ function render() {
   if (!bar) return;
   const query = search.value;
   const children = bar.children || [];
-  const rootEntries = children.filter((node) => node.url !== undefined).map((node) => ({ node, path: [] }));
-  const matchingRoot = rootEntries.filter((entry) => matchesEntry(entry, query));
-  const folders = children.filter((node) => node.url === undefined);
+  const rootEntries = children.filter((node) => node.url !== undefined);
+  const matchingRoot = rootEntries.filter((node) => matchesEntry(node, query));
   let count = matchingRoot.length;
-  const fragment = document.createDocumentFragment();
-  if (editing || !query.trim() || matchingRoot.length) fragment.append(renderPanel(bar, matchingRoot, true));
-  for (const folder of folders) {
-    const allEntries = flattenFolder(folder);
-    const matching = allEntries.filter((entry) => matchesEntry(entry, query, folder.title));
-    count += matching.filter((entry) => entry.node.url !== undefined).length;
-    const visible = editing
-      ? allEntries.filter((entry) => entry.node.url === undefined || matchesEntry(entry, query, folder.title))
-      : matching.filter((entry) => entry.node.url !== undefined);
-    const folderMatches = query.trim() && folder.title.toLocaleLowerCase().includes(query.trim().toLocaleLowerCase());
+  const visiblePanels = [];
+  for (const { folder, path } of folderPanels(bar)) {
+    const folderPath = path.join("/");
+    const entries = (folder.children || [])
+      .filter((node) => node.url !== undefined);
+    const matching = entries.filter((node) => matchesEntry(node, query, folderPath));
+    count += matching.length;
+    const folderMatches = query.trim() && folderPath.toLocaleLowerCase().includes(query.trim().toLocaleLowerCase());
     if (editing || !query.trim() || matching.length || folderMatches) {
-      fragment.append(renderPanel(folder, visible, false));
+      visiblePanels.push({
+        folder,
+        path: folderPath,
+        entries,
+        visibleEntries: editing ? entries.filter((node) => matchesEntry(node, query, folderPath)) : matching,
+        isRoot: false,
+      });
     }
+  }
+  if (editing || !query.trim() || matchingRoot.length) {
+    visiblePanels.push({ folder: bar, path: "", entries: rootEntries, visibleEntries: matchingRoot, isRoot: true });
+  }
+  const fragment = document.createDocumentFragment();
+  for (const column of panelColumns(visiblePanels)) {
+    const columnElement = element("div", "panel-column");
+    for (const panel of column) {
+      columnElement.append(renderPanel(panel.folder, panel.visibleEntries, panel.isRoot, panel.path));
+    }
+    fragment.append(columnElement);
   }
   panels.replaceChildren(fragment);
   updateScrollbar();
-  $("#summary").textContent = `${count} 件のブックマーク`;
+  $("#summary").textContent = `${count} bookmarks`;
   const empty = $("#empty");
   empty.hidden = panels.childElementCount > 0;
-  empty.textContent = "該当するブックマークはありません。";
+  empty.textContent = "No matching bookmarks.";
 }
 
+$("#columns-4").addEventListener("click", () => setColumns(4));
 $("#columns-6").addEventListener("click", () => setColumns(6));
 $("#columns-10").addEventListener("click", () => setColumns(10));
 $("#edit-toggle").addEventListener("click", (event) => {
   editing = !editing;
   event.currentTarget.setAttribute("aria-pressed", String(editing));
-  event.currentTarget.textContent = editing ? "編集を終了" : "編集モード";
+  event.currentTarget.textContent = editing ? "Done" : "Edit";
   $("#edit-help").hidden = !editing;
   showStatus("");
   render();
@@ -266,10 +281,10 @@ $("#edit-form").addEventListener("submit", async (event) => {
   try {
     await chrome.bookmarks.update(editingNode.id, changes);
     dialog.close();
-    showStatus("保存しました。");
+    showStatus("Changes saved.");
     await loadBookmarks();
   } catch (error) {
-    $("#form-error").textContent = `保存に失敗しました: ${error.message}`;
+    $("#form-error").textContent = `Failed to save changes: ${error.message}`;
     $("#form-error").hidden = false;
   } finally {
     busy = false;

@@ -1,42 +1,40 @@
 <!doctype html>
-<html lang="ja">
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>ブックマーク・パネル</title>
+  <title>chrome bookmark extension</title>
   <link rel="stylesheet" href="style.css">
   <script type="module" src="app.js"></script>
 </head>
 <body>
   <header class="toolbar">
-    <div class="brand">
-      <span class="brand-icon" aria-hidden="true">◆</span>
-      <div><h1>ブックマーク・パネル</h1><p>お気に入りを、ひと目で。</p></div>
-    </div>
-    <label class="search"><span aria-hidden="true">⌕</span><span class="sr-only">ブックマークを検索</span><input id="search" type="search" placeholder="名前、フォルダ、URL で検索"></label>
+    <div class="brand"><h1>bookmark</h1></div>
+    <p id="summary" class="summary" aria-live="polite"></p>
+    <label class="search"><span class="sr-only">Search bookmarks</span><input id="search" type="search" placeholder="Search by name, folder, or URL"></label>
     <div class="controls">
-      <div class="column-control" aria-label="列数">
-        <button id="columns-6" type="button" aria-pressed="false">6列</button>
-        <button id="columns-10" type="button" aria-pressed="false">10列</button>
+      <div class="column-control" role="group" aria-label="Column selection">
+        <button id="columns-4" type="button" aria-pressed="false">4 cols</button>
+        <button id="columns-6" type="button" aria-pressed="false">6 cols</button>
+        <button id="columns-10" type="button" aria-pressed="false">10 cols</button>
       </div>
-      <button id="edit-toggle" class="edit-toggle" type="button" aria-pressed="false">編集モード</button>
+      <button id="edit-toggle" class="edit-toggle" type="button" aria-pressed="false">Edit</button>
     </div>
   </header>
   <main>
-    <div class="page-heading"><div><p class="eyebrow">YOUR BOOKMARKS</p><h2>ブックマークバー</h2></div><p id="summary" class="summary" aria-live="polite"></p></div>
-    <p id="edit-help" class="edit-help" hidden>ドラッグハンドルで項目を移動できます。項目の上で直前に、フォルダの「ここに移動」で末尾に移動します。</p>
+    <p id="edit-help" class="edit-help" hidden>Drag items by their handles. Drop onto an item to place it before that item, or use "Move here" to place it at the end of a folder.</p>
     <div id="status" class="status" role="status" aria-live="polite" hidden></div>
-    <div id="panel-scrollbar" class="panel-scrollbar" role="region" aria-label="パネルの横スクロール" tabindex="0"><div id="panel-scrollbar-content"></div></div>
+    <div id="panel-scrollbar" class="panel-scrollbar" role="region" aria-label="Horizontal panel scrolling" tabindex="0"><div id="panel-scrollbar-content"></div></div>
     <div id="panels" class="panels"></div>
     <p id="empty" class="empty" hidden></p>
   </main>
   <dialog id="edit-dialog">
     <form id="edit-form">
       <h2 id="dialog-title"></h2>
-      <label>名前<input id="edit-name"></label>
+      <label>Name<input id="edit-name"></label>
       <label id="url-label">URL<input id="edit-url" type="url"></label>
       <p id="form-error" class="form-error" role="alert" hidden></p>
-      <div class="dialog-actions"><button id="cancel-edit" type="button">キャンセル</button><button class="primary" type="submit">保存</button></div>
+      <div class="dialog-actions"><button id="cancel-edit" type="button">Cancel</button><button class="primary" type="submit">Save</button></div>
     </form>
   </dialog>
 </body>

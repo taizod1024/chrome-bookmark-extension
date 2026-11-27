@@ -2,30 +2,44 @@ export function bookmarkBar(tree) {
   return tree[0]?.children?.find((node) => node.folderType === "bookmarks-bar" || node.id === "1");
 }
 
-export function flattenFolder(folder) {
-  const entries = [];
+export function folderPanels(root) {
+  const panels = [];
   function visit(parent, path) {
     for (const node of parent.children || []) {
-      if (node.url !== undefined) {
-        entries.push({ node, path });
-      } else {
-        entries.push({ node, path });
-        visit(node, [...path, node.title]);
-      }
+      if (node.url !== undefined) continue;
+      const panelPath = [...path, node.title || "Untitled folder"];
+      panels.push({ folder: node, path: panelPath });
+      visit(node, panelPath);
     }
   }
-  visit(folder, []);
-  return entries;
+  visit(root, []);
+  return panels;
 }
 
-export function matchesEntry(entry, query, panelTitle = "") {
+export function panelColumns(panels) {
+  const columns = [];
+  for (let index = 0; index < panels.length;) {
+    const current = panels[index];
+    const next = panels[index + 1];
+    if (current.entries.length <= 10 && next && next.entries.length <= 10) {
+      columns.push([current, next]);
+      index += 2;
+    } else {
+      columns.push([current]);
+      index += 1;
+    }
+  }
+  return columns;
+}
+
+export function matchesEntry(node, query, panelTitle = "") {
   const needle = query.trim().toLocaleLowerCase();
   if (!needle) return true;
-  return [panelTitle, ...entry.path, entry.node.title, entry.node.url || ""]
+  return [panelTitle, node.title, node.url || ""]
     .some((value) => value.toLocaleLowerCase().includes(needle));
 }
 
-export function findNode(root, id) {
+function findNode(root, id) {
   if (root.id === id) return root;
   for (const child of root.children || []) {
     const found = findNode(child, id);
@@ -54,17 +68,17 @@ export function moveDestination(root, sourceId, parentId, beforeId) {
   const source = findNode(root, sourceId);
   const parent = findNode(root, parentId);
   if (!source || !parent || parent.url !== undefined || source.id === root.id) {
-    throw new Error("移動元または移動先が見つかりません。");
+    throw new Error("Source or destination not found.");
   }
   if (source.url === undefined && findNode(source, parentId)) {
-    throw new Error("フォルダを自分自身または子フォルダに移動することはできません。");
+    throw new Error("A folder cannot be moved into itself or one of its descendants.");
   }
   const children = parent.children || [];
   const index = beforeId ? children.findIndex((child) => child.id === beforeId) : children.length;
-  if (index < 0) throw new Error("移動先の項目が見つかりません。");
+  if (index < 0) throw new Error("Destination item not found.");
   if (source.parentId === parentId) {
     const oldIndex = children.findIndex((child) => child.id === sourceId);
-    if (oldIndex < 0) throw new Error("移動元の位置が見つかりません。");
+    if (oldIndex < 0) throw new Error("Source position not found.");
     if (oldIndex === index || oldIndex + 1 === index) return null;
   }
   return { parentId, index };
