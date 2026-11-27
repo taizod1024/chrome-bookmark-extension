@@ -23,12 +23,12 @@ h1 { font-size: 16px; letter-spacing: .02em; }
 main { padding: 0 0 4px; }
 .summary { color: #8b95a8; font-size: 12px; margin: 4px; white-space: nowrap; flex-shrink: 0; }
 .toolbar .summary { color: white; }
-.panel-scrollbar { overflow-x: scroll; overflow-y: hidden; margin-bottom: 4px; background: var(--toolbar-background); scrollbar-color: white var(--toolbar-background); }
+.panel-scrollbar { overflow-x: scroll; overflow-y: hidden; background: var(--toolbar-background); scrollbar-color: white var(--toolbar-background); }
 .panel-scrollbar > div { height: 1px; }
 .panel-scrollbar::-webkit-scrollbar { height: 12px; background: var(--toolbar-background); }
 .panel-scrollbar::-webkit-scrollbar-track { background: var(--toolbar-background); border: 1px solid var(--toolbar-background); }
 .panel-scrollbar::-webkit-scrollbar-thumb { background: white; border: 1px solid var(--toolbar-background); border-radius: 4px; }
-.panels { display: grid; grid-template-rows: auto; grid-auto-flow: column; grid-auto-columns: var(--panel-width, 160px); gap: 4px; align-items: start; overflow-x: auto; scrollbar-width: none; margin: 0 4px; }
+.panels { display: grid; grid-template-rows: auto; grid-auto-flow: column; grid-auto-columns: var(--panel-width, 160px); gap: 4px; align-items: start; overflow-x: auto; scrollbar-width: none; margin: 4px; }
 .panels::-webkit-scrollbar { display: none; }
 .panel-column { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
 .panel-column > .panel { width: 100%; }

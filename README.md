@@ -6,7 +6,7 @@ A Chrome extension that displays the bookmarks bar as panels organized by folder
 
 1. Open `chrome://extensions` in Chrome and enable Developer mode.
 2. Select **Load unpacked** and choose this repository's folder.
-3. Click the extension icon in the toolbar to open the bookmark view in a new tab.
+3. Click the extension icon in the toolbar to open the bookmark view in a new tab, or switch to its existing tab if it is already open.
 
 ## Usage
 
