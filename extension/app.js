@@ -386,6 +386,7 @@ function renderEntry(node) {
 
 function renderPanel(folder, entries, isRoot, folderPath = "") {
   const panel = element("section", "panel");
+  panel.dataset.folderId = folder.id;
   const header = element("div", "panel-header");
   header.dataset.nodeId = folder.id;
   if (editing) {
@@ -413,6 +414,44 @@ function renderPanel(folder, entries, isRoot, folderPath = "") {
   return panel;
 }
 
+const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)");
+const panelAnimation = { duration: 220, easing: "ease-out" };
+
+function snapshotPanels() {
+  const rects = new Map();
+  for (const panel of panels.querySelectorAll(".panel")) {
+    rects.set(panel.dataset.folderId, { rect: panel.getBoundingClientRect(), element: panel });
+  }
+  return rects;
+}
+
+// Animates panels that moved (FLIP), appeared (fade in) or disappeared (fade out a clone).
+function animatePanels(before) {
+  if (reducedMotion.matches || !document.body.classList.contains("animation") || !before.size) return;
+  const seen = new Set();
+  for (const panel of panels.querySelectorAll(".panel")) {
+    const id = panel.dataset.folderId;
+    seen.add(id);
+    const previous = before.get(id);
+    if (!previous) {
+      panel.animate([{ opacity: 0, transform: "scale(0.96)" }, { opacity: 1, transform: "none" }], panelAnimation);
+      continue;
+    }
+    const rect = panel.getBoundingClientRect();
+    const dx = previous.rect.left - rect.left;
+    const dy = previous.rect.top - rect.top;
+    if (dx || dy) panel.animate([{ transform: `translate(${dx}px, ${dy}px)` }, { transform: "none" }], panelAnimation);
+  }
+  for (const [id, { rect, element: old }] of before) {
+    if (seen.has(id)) continue;
+    const ghost = old.cloneNode(true);
+    Object.assign(ghost.style, { position: "fixed", left: `${rect.left}px`, top: `${rect.top}px`, width: `${rect.width}px`, height: `${rect.height}px`, margin: "0", pointerEvents: "none", zIndex: "1" });
+    document.body.append(ghost);
+    const fade = ghost.animate([{ opacity: 1, transform: "none" }, { opacity: 0, transform: "scale(0.96)" }], panelAnimation);
+    fade.finished.then(() => ghost.remove(), () => ghost.remove());
+  }
+}
+
 function render() {
   if (!bar) return;
   const query = search.value;
@@ -426,8 +465,12 @@ function render() {
     }
     fragment.append(columnElement);
   }
+  const before = snapshotPanels();
+  const scrollLeft = panels.scrollLeft;
   panels.replaceChildren(fragment);
+  panels.scrollLeft = scrollLeft;
   updateScrollbar();
+  animatePanels(before);
   $("#summary").textContent = `${count} bookmarks`;
   const empty = $("#empty");
   empty.hidden = panels.childElementCount > 0;
@@ -455,7 +498,7 @@ search.addEventListener("input", () => {
 for (const name of ["onCreated", "onRemoved", "onChanged", "onMoved", "onChildrenReordered", "onImportEnded"]) {
   chrome.bookmarks[name].addListener(loadBookmarks);
 }
-for (const [id, key, className, fallback] of [["#flag-single-row", "singleRow", "single-row", false], ["#flag-keep-folders", "keepFolders", "keep-folders", false], ["#flag-equal-height", "equalHeight", "equal-height", false]]) {
+for (const [id, key, className, fallback] of [["#flag-single-row", "singleRow", "single-row", false], ["#flag-keep-folders", "keepFolders", "keep-folders", false], ["#flag-equal-height", "equalHeight", "equal-height", false], ["#flag-animation", "animation", "animation", true]]) {
   const checkbox = $(id);
   const stored = localStorage.getItem(key);
   checkbox.checked = stored === null ? fallback : stored === "true";
