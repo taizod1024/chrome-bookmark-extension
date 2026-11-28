@@ -50,6 +50,7 @@ test("stacks panels by top-level folder", () => {
     ["c", "c/c1"],
     ["root"],
   ]);
+  assert.equal(panelColumns(panels, false).length, panels.length);
 });
 
 test("searches titles, URLs, and ancestor folders case-insensitively", () => {

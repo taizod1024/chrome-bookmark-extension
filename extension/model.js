@@ -17,11 +17,11 @@ export function folderPanels(root) {
   return panels;
 }
 
-export function panelColumns(panels) {
+export function panelColumns(panels, stackSubfolders = true) {
   const columns = [];
   for (const panel of panels) {
     const last = columns[columns.length - 1];
-    if (last && last[0].group === panel.group) last.push(panel);
+    if (stackSubfolders && last && last[0].group === panel.group) last.push(panel);
     else columns.push([panel]);
   }
   return columns;

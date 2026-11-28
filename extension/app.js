@@ -468,7 +468,7 @@ function render() {
   const visiblePanels = visibleBookmarkPanels(bar, query, document.body.classList.contains("keep-folders"));
   const count = visiblePanels.reduce((total, panel) => total + panel.visibleEntries.length, 0);
   const fragment = document.createDocumentFragment();
-  for (const column of panelColumns(visiblePanels)) {
+  for (const column of panelColumns(visiblePanels, !document.body.classList.contains("unstack"))) {
     const columnElement = element("div", "panel-column");
     for (const panel of column) {
       columnElement.append(renderPanel(panel.folder, panel.visibleEntries, panel.isRoot, panel.path));
@@ -508,7 +508,7 @@ search.addEventListener("input", () => {
 for (const name of ["onCreated", "onRemoved", "onChanged", "onMoved", "onChildrenReordered", "onImportEnded"]) {
   chrome.bookmarks[name].addListener(loadBookmarks);
 }
-for (const [id, key, className, fallback] of [["#flag-single-row", "singleRow", "single-row", false], ["#flag-keep-folders", "keepFolders", "keep-folders", false], ["#flag-equal-height", "equalHeight", "equal-height", false], ["#flag-animation", "animation", "animation", true]]) {
+for (const [id, key, className, fallback] of [["#flag-single-row", "singleRow", "single-row", false], ["#flag-keep-folders", "keepFolders", "keep-folders", false], ["#flag-equal-height", "equalHeight", "equal-height", false], ["#flag-animation", "animation", "animation", true], ["#flag-unstack", "unstackSubfolders", "unstack", false]]) {
   const checkbox = $(id);
   const stored = localStorage.getItem(key);
   checkbox.checked = stored === null ? fallback : stored === "true";
