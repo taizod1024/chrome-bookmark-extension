@@ -510,6 +510,9 @@ for (const [id, key, className, fallback] of [["#flag-single-row", "singleRow", 
     render();
   });
 }
+const optionsMenu = $("#options-menu");
+document.addEventListener("click", (event) => { if (!optionsMenu.contains(event.target)) optionsMenu.open = false; });
+document.addEventListener("keydown", (event) => { if (event.key === "Escape") optionsMenu.open = false; });
 setMaxRows(maxRows);
 setColumns(columns);
 loadBookmarks();

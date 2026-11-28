@@ -15,12 +15,18 @@
     </div>
     <div class="search-group" role="group" aria-label="Search options">
       <label class="search"><span class="sr-only">Search bookmarks</span><input id="search" type="search" autocomplete="off" placeholder="Search by name, folder, or URL"></label>
-      <label class="flag"><input id="flag-keep-folders" type="checkbox"> Keep folders</label>
     </div>
     <div class="controls">
-      <label class="flag"><input id="flag-equal-height" type="checkbox"> Equal height</label>
-      <label class="flag"><input id="flag-single-row" type="checkbox"> 1 row</label>
-      <label class="flag"><input id="flag-animation" type="checkbox"> Animation</label>
+      <details id="options-menu" class="options">
+        <summary class="select">Options</summary>
+        <div class="options-list" role="group" aria-label="Options">
+          <label class="flag"><input id="flag-keep-folders" type="checkbox"><span>Keep folders</span></label>
+          <label class="flag"><input id="flag-animation" type="checkbox"><span>Animation</span></label>
+          <hr class="options-separator">
+          <label class="flag"><input id="flag-equal-height" type="checkbox"><span>Equal height</span></label>
+          <label class="flag"><input id="flag-single-row" type="checkbox"><span>1 row</span></label>
+        </div>
+      </details>
       <select id="rows-select" class="select" aria-label="Bookmarks per panel">
         <option value="10">10 bookmarks</option>
         <option value="20">20 bookmarks</option>
