@@ -6,6 +6,7 @@ const panels = $("#panels");
 const panelScrollbar = $("#panel-scrollbar");
 const panelScrollbarContent = $("#panel-scrollbar-content");
 const search = $("#search");
+const pageTitle = document.title;
 let bar;
 let editing = false;
 let loadVersion = 0;
@@ -534,7 +535,12 @@ $("#edit-toggle").addEventListener("click", (event) => {
   render();
 });
 search.value = new URLSearchParams(location.search).get("search") ?? "";
+function updateSearchTitle() {
+  document.title = search.value.trim() ? `${pageTitle} | ${search.value}` : pageTitle;
+}
+updateSearchTitle();
 search.addEventListener("input", () => {
+  updateSearchTitle();
   const url = new URL(location.href);
   if (search.value) url.searchParams.set("search", search.value);
   else url.searchParams.delete("search");

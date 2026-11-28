@@ -11,10 +11,12 @@ The extension reads and organizes Chrome's existing bookmarks, but it does not c
 | ![Folder panels](store/screenshots/01-panels.png) | ![Folder search](store/screenshots/02-search.png) |
 | Folder panels organize every folder under the bookmarks bar. | Search by bookmark name, folder path, or URL. |
 
-| Edit mode | Equal-height layout |
+| Edit mode | Layout options |
 | --- | --- |
-| ![Drag-and-drop editing](store/screenshots/03-edit.png) | ![Equal-height layout](store/screenshots/04-layout.png) |
-| Rename, add, delete, and drag items to reorganize your bookmarks. | Display panels in a flexible equal-height layout with adjustable row limits. |
+| ![Drag-and-drop editing](store/screenshots/03-edit.png) | ![Panel height and layout options](store/screenshots/04-layout.png) |
+| Rename, add, delete, and drag items to reorganize your bookmarks. | Adjust panel height, layout, and bookmark limits in Options. |
+
+Screenshots use sample bookmarks and placeholder favicons, not personal data.
 
 ## Features
 
@@ -25,6 +27,7 @@ The extension reads and organizes Chrome's existing bookmarks, but it does not c
 - Supports AND-style search terms, for example `dev docs`.
 - Keeps folders visible during search with **Keep folders**.
 - Shows Chrome favicons with a fallback icon when unavailable.
+- Adapts to the system's light or dark color scheme.
 - Opens bookmarks in a new tab and blocks unsafe `javascript:` and `data:` URLs.
 - Automatically reflects bookmark changes made in Chrome.
 
@@ -60,18 +63,19 @@ Enter text in the search field to filter bookmarks by partial matches in:
 - URLs
 
 Separate terms are combined as AND filters. For example, `dev docs` must match a bookmark or folder through the same search fields.
+The search text also appears in the browser tab title.
 
 ## Edit and organize
 
-Select **Edit** to enable bookmark and folder controls.
+Select **Edit** to enable bookmark and folder controls. Changes are saved to Chrome immediately.
 
 - Use **NAME** to rename a bookmark or folder.
 - Use **URL** to change a bookmark URL.
 - Use **ADD** to add a folder.
 - Use **DEL** to delete a bookmark or folder.
 - Drag a bookmark or folder with the grip handle to move it.
-- Drop a bookmark or folder on the **File / Folder** area at the bottom of a panel to move it to the end of that folder.
-- Drag a URL from the browser onto a bookmark or folder drop area to create a bookmark.
+- Drop an item onto another item of the same kind to reorder it, or onto **File / Folder** to move it to the end of that folder. Dropping a bookmark on a folder name also moves it to the end of that folder.
+- Drag a URL from the browser onto a bookmark or the **File / Folder** drop area to create a bookmark, even outside Edit mode.
 
 Folders containing child folders cannot be deleted. Deleting a folder that contains only bookmarks requires confirmation.
 
@@ -83,7 +87,7 @@ When a dropped URL has no useful title, the extension checks matching open tabs 
 - `favicon` - display each site's Chrome-fetched favicon.
 - `tabs` - match dropped URLs to open tabs and reuse their titles.
 
-The extension uses `localStorage` for layout and option preferences. Bookmark data and tab information are processed locally and are never transmitted.
+The extension uses `localStorage` for layout and option preferences. Bookmark and tab information is processed locally and is not transmitted by the extension. See the [privacy policy](store/privacy/privacy-policy.md).
 
 ## Development
 
@@ -101,7 +105,7 @@ Package the extension for local distribution:
 npm run zip
 ```
 
-The package script creates a versioned ZIP in the repository root. For example:
+The Windows packaging script creates a versioned ZIP in the repository root, with `manifest.json` at the archive root. For example:
 
 ```text
 chrome-bookmark-extension-1.0.0.zip

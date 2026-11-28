@@ -6,7 +6,7 @@ import { runInNewContext } from "node:vm";
 const source = (await readFile(new URL("./extension/app.js", import.meta.url), "utf8"))
   .replace(/^import .*;\r?\n/gm, "");
 
-function setup(initialStorage) {
+function setup(initialStorage, searchQuery = "") {
   const storage = new Map(Object.entries(initialStorage));
   const elements = new Map();
   function element() {
@@ -27,6 +27,7 @@ function setup(initialStorage) {
   const body = element();
   const document = {
     body,
+    title: "chrome bookmark extension",
     querySelector(selector) {
       if (!elements.has(selector)) elements.set(selector, element());
       return elements.get(selector);
@@ -46,18 +47,34 @@ function setup(initialStorage) {
       getItem: (key) => storage.get(key) ?? null,
       setItem: (key, value) => storage.set(key, value),
     },
-    location: { search: "" },
+    location: { search: searchQuery, href: `https://example.test/index.html${searchQuery}` },
+    history: { replaceState() {} },
+    URL,
     URLSearchParams,
     ResizeObserver: class { observe() {} },
     matchMedia: () => ({ matches: false }),
     getComputedStyle: () => ({ rowGap: "4px", getPropertyValue: () => "80px" }),
   });
   return {
-    body, storage, rows: elements.get("#rows-options"), columns: elements.get("#columns-select"),
+    body, document, storage, search: elements.get("#search"), rows: elements.get("#rows-options"), columns: elements.get("#columns-select"),
     rowChoices: Object.fromEntries([0, 10, 20, 30].map((value) => [value, elements.get(`#rows-${value}`)])),
     modes: Object.fromEntries(["content", "row", "page"].map((mode) => [mode, elements.get(`#height-${mode}`)])),
   };
 }
+
+test("reflects restored and edited searches in the tab title", () => {
+  const { document, search } = setup({}, "?search=azure");
+  assert.equal(document.title, "chrome bookmark extension | azure");
+  search.value = "web api";
+  search.dispatch("input");
+  assert.equal(document.title, "chrome bookmark extension | web api");
+  search.value = " ";
+  search.dispatch("input");
+  assert.equal(document.title, "chrome bookmark extension");
+  search.value = "";
+  search.dispatch("input");
+  assert.equal(document.title, "chrome bookmark extension");
+});
 
 test("migrates saved column counts and uses eight columns by default", () => {
   for (const [stored, expected] of [["2", "4"], ["3", "4"], ["4", "4"], ["6", "8"], ["8", "8"], ["10", "12"], ["12", "12"], ["invalid", "8"]]) {
