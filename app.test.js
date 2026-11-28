@@ -6,7 +6,7 @@ import { runInNewContext } from "node:vm";
 const source = (await readFile(new URL("./extension/app.js", import.meta.url), "utf8"))
   .replace(/^import .*;\r?\n/gm, "");
 
-function setup(initialStorage, searchQuery = "") {
+function setup(initialStorage, searchQuery = "", timers = { setTimeout, clearTimeout }) {
   const storage = new Map(Object.entries(initialStorage));
   const elements = new Map();
   function element() {
@@ -39,7 +39,7 @@ function setup(initialStorage, searchQuery = "") {
     ...Object.fromEntries(["onCreated", "onRemoved", "onChanged", "onMoved", "onChildrenReordered", "onImportEnded"]
       .map((name) => [name, { addListener() {} }])),
   };
-  runInNewContext(source, {
+  const showStatus = runInNewContext(`${source}\nshowStatus;`, {
     document,
     window: { innerHeight: 800, addEventListener() {} },
     chrome: { bookmarks, runtime: { onMessage: { addListener() {} } } },
@@ -51,16 +51,56 @@ function setup(initialStorage, searchQuery = "") {
     history: { replaceState() {} },
     URL,
     URLSearchParams,
+    ...timers,
     ResizeObserver: class { observe() {} },
     matchMedia: () => ({ matches: false }),
     getComputedStyle: () => ({ rowGap: "4px", getPropertyValue: () => "80px" }),
   });
   return {
-    body, document, storage, search: elements.get("#search"), rows: elements.get("#rows-options"), columns: elements.get("#columns-select"),
+    body, document, storage, showStatus, search: elements.get("#search"), rows: elements.get("#rows-options"), columns: elements.get("#columns-select"),
     rowChoices: Object.fromEntries([0, 10, 20, 30].map((value) => [value, elements.get(`#rows-${value}`)])),
     modes: Object.fromEntries(["content", "row", "page"].map((mode) => [mode, elements.get(`#height-${mode}`)])),
   };
 }
+
+test("hides status messages after the shortened display time", () => {
+  let now = 0;
+  let nextId = 0;
+  const pending = new Map();
+  const timers = {
+    setTimeout(callback, delay) {
+      const id = ++nextId;
+      pending.set(id, { callback, at: now + delay });
+      return id;
+    },
+    clearTimeout(id) { pending.delete(id); },
+  };
+  function advance(ms) {
+    now += ms;
+    for (const [id, timer] of pending) {
+      if (timer.at <= now) {
+        pending.delete(id);
+        timer.callback();
+      }
+    }
+  }
+  const { document, showStatus } = setup({}, "", timers);
+  const status = document.querySelector("#status");
+  showStatus("Done");
+  advance(1999);
+  assert.equal(status.hidden, false);
+  advance(1);
+  assert.equal(status.hidden, true);
+
+  showStatus("Done");
+  advance(1000);
+  showStatus("Failed", true);
+  advance(3999);
+  assert.equal(status.hidden, false);
+  assert.equal(status.classList.contains("error"), true);
+  advance(1);
+  assert.equal(status.hidden, true);
+});
 
 test("reflects restored and edited searches in the tab title", () => {
   const { document, search } = setup({}, "?search=azure");

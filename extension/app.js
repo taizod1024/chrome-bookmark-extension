@@ -27,7 +27,7 @@ function showStatus(message, isError = false) {
   status.title = message;
   status.classList.toggle("error", isError);
   status.hidden = !message;
-  if (message) statusTimer = setTimeout(() => { status.hidden = true; }, isError ? 8000 : 4000);
+  if (message) statusTimer = setTimeout(() => { status.hidden = true; }, isError ? 4000 : 2000);
 }
 
 function element(tag, className, text) {
