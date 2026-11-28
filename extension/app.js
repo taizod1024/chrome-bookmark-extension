@@ -415,6 +415,7 @@ function renderPanel(folder, entries, isRoot, folderPath = "") {
 }
 
 const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)");
+let introPlayed = false;
 const panelAnimation = { duration: 220, easing: "ease-out" };
 
 function snapshotPanels() {
@@ -427,7 +428,16 @@ function snapshotPanels() {
 
 // Animates panels that moved (FLIP), appeared (fade in) or disappeared (fade out a clone).
 function animatePanels(before) {
-  if (reducedMotion.matches || !document.body.classList.contains("animation") || !before.size) return;
+  if (reducedMotion.matches || !document.body.classList.contains("animation")) return;
+  if (!before.size) {
+    if (introPlayed) return;
+    introPlayed = true;
+    const step = Math.min(40, 600 / panels.querySelectorAll(".panel").length);
+    panels.querySelectorAll(".panel").forEach((panel, index) => {
+      panel.animate([{ opacity: 0, transform: "translateY(8px)" }, { opacity: 1, transform: "none" }], { ...panelAnimation, delay: index * step, fill: "backwards" });
+    });
+    return;
+  }
   const seen = new Set();
   for (const panel of panels.querySelectorAll(".panel")) {
     const id = panel.dataset.folderId;
