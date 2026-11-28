@@ -133,7 +133,7 @@ body.limit-rows .entries { max-height: calc(var(--max-rows) * 24px + 8px); overf
 body:not(.no-wrap) .panel-scrollbar { display: none; }
 body:not(.no-wrap) .panels { grid-auto-flow: row; grid-template-columns: repeat(var(--columns, 8), var(--panel-width, 160px)); overflow-x: hidden; }
 .entry { display: flex; align-items: center; gap: 4px; min-width: 0; height: 24px; padding: 4px; border-radius: 4px; }
-.entry.editing-entry { padding-top: 2px; padding-bottom: 2px; }
+.entry.editing-entry { padding-top: 2px; padding-right: 0; padding-bottom: 2px; }
 .entry:hover { background: var(--entry-hover-background); }
 .entry-icon { flex-shrink: 0; color: var(--icon-muted); font-size: 9px; }
 .favicon { width: 16px; height: 16px; object-fit: contain; }
@@ -142,6 +142,7 @@ body:not(.no-wrap) .panels { grid-auto-flow: row; grid-template-columns: repeat(
 a.entry-title:hover { color: var(--entry-link-hover-color); text-decoration: underline; }
 .panel-empty { color: var(--muted-text); font-size: 11px; padding: 4px; }
 .drag-handle { cursor: grab; flex-shrink: 0; color: var(--icon-muted); font-size: 14px; line-height: 1; user-select: none; }
+.editing-entry .drag-handle { margin-left: -4px; margin-right: 4px; }
 .drag-handle:active { cursor: grabbing; }
 .icon-button { flex-shrink: 0; border: 0; background: transparent; color: var(--muted-text); padding: 3px 2px; font-size: 11px; font-weight: normal; }
 .icon-button + .icon-button { margin-left: -3px; }
