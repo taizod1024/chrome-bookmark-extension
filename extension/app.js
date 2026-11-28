@@ -375,7 +375,7 @@ function renderEntry(node) {
   link.href = isSafeBookmarkUrl(node.url) ? node.url : "#";
   link.target = "_blank";
   link.rel = "noopener noreferrer";
-  link.title = node.url;
+  link.title = node.title ? `${node.title}\n${node.url}` : node.url;
   link.addEventListener("click", (event) => openBookmark(event, node));
   link.addEventListener("auxclick", (event) => openBookmark(event, node));
   content.append(link);
