@@ -34,7 +34,7 @@ Choose **3**, **6**, or **10** columns and set the visible bookmark limit to **1
 
 The **Options** menu also provides:
 
-- **Keep folders** - keep folder panels visible while filtering.
+- **Keep folders** - keep folder panels visible while filtering; panels without matches appear darker.
 - **No animation** - disable panel transitions.
 - **Fit panels to page height** - distribute available height across wrapped rows and scroll long bookmark lists inside their panels. When panels cannot fit at their minimum height, the page scrolls vertically.
 - **No height adjustment** - turn off automatic panel height balancing.
@@ -49,7 +49,7 @@ The **Options** menu also provides:
 4. Choose the `extension` folder from this repository.
 5. Click the extension icon to open bookmark panels in a tab.
 
-An existing extension tab is reused when the icon is clicked again.
+An existing extension tab is reused and its search is cleared when the icon is clicked again.
 
 When updating the extension, reload it from `chrome://extensions` and accept any new permission prompts.
 
@@ -67,10 +67,10 @@ Separate terms are combined as AND filters. For example, `dev docs` must match a
 
 Select **Edit** to enable bookmark and folder controls.
 
-- Use `✎` to rename a bookmark or folder.
+- Use **NAME** to rename a bookmark or folder.
 - Use **URL** to change a bookmark URL.
-- Use `+` to add a folder.
-- Use `×` to delete a bookmark or folder.
+- Use **ADD** to add a folder.
+- Use **DEL** to delete a bookmark or folder.
 - Drag a bookmark or folder with the grip handle to move it.
 - Drop a bookmark or folder on the **File / Folder** area at the bottom of a panel to move it to the end of that folder.
 - Drag a URL from the browser onto a bookmark or folder drop area to create a bookmark.

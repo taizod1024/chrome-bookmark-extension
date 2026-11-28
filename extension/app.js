@@ -262,7 +262,7 @@ function dropMove(sourceId, destination) {
 function editButton(node, field) {
   const isUrl = field === "url";
   const itemName = node.title || node.url || "Untitled";
-  const button = element("button", isUrl ? "icon-button url-edit-button" : "icon-button name-edit-button", isUrl ? "URL" : "✎");
+  const button = element("button", isUrl ? "icon-button url-edit-button" : "icon-button name-edit-button", isUrl ? "URL" : "NAME");
   button.type = "button";
   button.title = `Edit ${isUrl ? "URL" : "name"} for ${itemName}`;
   button.setAttribute("aria-label", button.title);
@@ -299,7 +299,7 @@ function editButton(node, field) {
 function deleteButton(node) {
   const isFolder = node.url === undefined;
   const itemName = node.title || (isFolder ? "Untitled folder" : node.url);
-  const button = element("button", "icon-button delete-button", "×");
+  const button = element("button", "icon-button delete-button", "DEL");
   button.type = "button";
   button.title = `Delete ${isFolder ? "folder" : "bookmark"} ${itemName}`;
   button.setAttribute("aria-label", button.title);
@@ -345,7 +345,7 @@ function deleteButton(node) {
 }
 
 function addFolderButton(parent) {
-  const button = element("button", "icon-button add-folder-button", "+");
+  const button = element("button", "icon-button add-folder-button", "ADD");
   button.type = "button";
   button.title = `Add folder to ${parent.title || "Bookmarks bar"}`;
   button.setAttribute("aria-label", button.title);
@@ -408,6 +408,7 @@ function renderEntry(node) {
 
 function renderPanel(folder, entries, isRoot, folderPath = "") {
   const panel = element("section", "panel");
+  panel.classList.toggle("no-matches", !entries.length && Boolean(search.value.trim()));
   panel.dataset.folderId = folder.id;
   const header = element("div", "panel-header");
   header.dataset.nodeId = folder.id;
@@ -526,6 +527,15 @@ search.addEventListener("input", () => {
   else url.searchParams.delete("search");
   history.replaceState(null, "", url);
   render();
+});
+chrome.runtime.onMessage.addListener((message) => {
+  if (message?.type !== "clear-search") return;
+  chrome.tabs.getCurrent().then((tab) => {
+    if (tab?.id !== message.tabId) return;
+    search.value = "";
+    search.dispatchEvent(new Event("input"));
+    search.focus();
+  }).catch((error) => showStatus(`Failed to clear search: ${error.message}`, true));
 });
 
 for (const name of ["onCreated", "onRemoved", "onChanged", "onMoved", "onChildrenReordered", "onImportEnded"]) {
