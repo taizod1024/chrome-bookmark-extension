@@ -5,6 +5,7 @@
   --panel-header-background: #fff;
   --surface-foreground: #242d3d;
   --entry-title-color: #3e4a60;
+  --entry-link-hover-color: #5066da;
   --page-background: #e5e5e5;
   --input-border: #ebedf4;
   --surface-border: #e7ebf3;
@@ -35,6 +36,7 @@
     --panel-header-background: #363636;
     --surface-foreground: #e8e8e8;
     --entry-title-color: #d4d4d4;
+    --entry-link-hover-color: #a9bcff;
     --page-background: #1a1a1a;
     --input-border: #494949;
     --surface-border: #414141;
@@ -106,7 +108,7 @@ body:not(.single-row) .panels { grid-auto-flow: row; grid-template-columns: repe
 .favicon { width: 16px; height: 16px; object-fit: contain; }
 .entry-content { flex: 1; min-width: 0; }
 .entry-title { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--entry-title-color); font-size: 11px; text-decoration: none; }
-a.entry-title:hover { color: #5066da; text-decoration: underline; }
+a.entry-title:hover { color: var(--entry-link-hover-color); text-decoration: underline; }
 .panel-empty { color: var(--muted-text); font-size: 11px; padding: 4px; }
 .drag-handle { cursor: grab; flex-shrink: 0; color: var(--icon-muted); font-size: 14px; line-height: 1; user-select: none; }
 .drag-handle:active { cursor: grabbing; }
