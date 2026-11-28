@@ -16,6 +16,8 @@
   --select-hover-background: #f3f5fd;
   --select-arrow-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%235f6d86' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
   --muted-text: #6b7688;
+  --add-button-color: #156b35;
+  --edit-button-color: #2451b1;
   --summary-text: #8b95a8;
   --icon-muted: #7d889c;
   --drop-border: #c3cbdb;
@@ -50,6 +52,8 @@
     --select-hover-background: #424242;
     --select-arrow-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%23b0b0b0' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
     --muted-text: #b0b0b0;
+    --add-button-color: #75d99b;
+    --edit-button-color: #9bb9ff;
     --summary-text: #b0b0b0;
     --icon-muted: #b0b0b0;
     --drop-border: #666;
@@ -139,9 +143,11 @@ a.entry-title:hover { color: var(--entry-link-hover-color); text-decoration: und
 .panel-empty { color: var(--muted-text); font-size: 11px; padding: 4px; }
 .drag-handle { cursor: grab; flex-shrink: 0; color: var(--icon-muted); font-size: 14px; line-height: 1; user-select: none; }
 .drag-handle:active { cursor: grabbing; }
-.icon-button { flex-shrink: 0; border: 0; background: transparent; color: var(--muted-text); padding: 3px; font-size: 11px; font-weight: normal; }
+.icon-button { flex-shrink: 0; border: 0; background: transparent; color: var(--muted-text); padding: 3px 2px; font-size: 11px; font-weight: normal; }
+.icon-button + .icon-button { margin-left: -3px; }
 .name-edit-button { transform: none; }
-.add-folder-button { color: #1f7a44; }
+.name-edit-button, .url-edit-button { color: var(--edit-button-color); }
+.add-folder-button { color: var(--add-button-color); }
 .delete-button { color: #b23b45; }
 .folder-end-drop { min-height: 20px; margin: 0 8px 4px; padding: 3px; border: 1px dashed var(--drop-border); border-radius: 4px; color: var(--muted-text); font-size: 10px; text-align: center; }
 body:not(.external-url-drag) .external-only-drop { display: none; }
