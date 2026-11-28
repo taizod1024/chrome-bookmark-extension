@@ -27,25 +27,35 @@
           <span>Options</span>
         </summary>
         <div class="options-list" role="group" aria-label="Options">
-          <label class="flag"><input id="flag-keep-folders" type="checkbox"><span>Keep folders</span></label>
-          <label class="flag"><input id="flag-no-animation" type="checkbox"><span>No animation</span></label>
-          <hr class="options-separator">
-          <label class="flag"><input id="flag-no-height-adjustment" type="checkbox"><span>No height adjustment</span></label>
-          <label class="flag"><input id="flag-no-wrap" type="checkbox"><span>No wrap</span></label>
-          <label class="flag"><input id="flag-no-subfolder-stacking" type="checkbox"><span>No subfolder stacking</span></label>
-          <label class="flag"><input id="flag-fit-panel-height" type="checkbox"><span>Fit panels to page height</span></label>
+          <div class="option-group" role="group" aria-labelledby="search-options-label">
+            <div id="search-options-label" class="option-group-title">Search</div>
+            <label class="flag"><input id="flag-keep-folders" type="checkbox"><span>Keep folders</span></label>
+            <label class="flag"><input id="flag-no-animation" type="checkbox"><span>No animation</span></label>
+          </div>
+          <div class="option-group" role="group" aria-labelledby="panel-layout-label">
+            <div id="panel-layout-label" class="option-group-title">Panel layout</div>
+            <label class="flag"><input id="flag-no-wrap" type="checkbox"><span>No wrap</span></label>
+            <label class="flag"><input id="flag-no-subfolder-stacking" type="checkbox"><span>No subfolder stacking</span></label>
+          </div>
+          <div class="option-group" role="radiogroup" aria-labelledby="panel-height-label">
+            <div id="panel-height-label" class="option-group-title">Panel height</div>
+            <label class="flag"><input id="height-content" name="panel-height" type="radio" value="content"><span>Content height</span></label>
+            <label class="flag"><input id="height-row" name="panel-height" type="radio" value="row"><span>Fit panels to row height</span></label>
+            <label class="flag"><input id="height-page" name="panel-height" type="radio" value="page"><span>Fit panels to page height</span></label>
+          </div>
+          <fieldset id="rows-options" class="option-group">
+            <legend class="option-group-title">Bookmarks per panel</legend>
+            <label class="flag"><input id="rows-10" name="max-rows" type="radio" value="10"><span>10</span></label>
+            <label class="flag"><input id="rows-20" name="max-rows" type="radio" value="20"><span>20</span></label>
+            <label class="flag"><input id="rows-30" name="max-rows" type="radio" value="30"><span>30</span></label>
+            <label class="flag"><input id="rows-0" name="max-rows" type="radio" value="0"><span>Unlimited</span></label>
+          </fieldset>
         </div>
       </details>
-      <select id="rows-select" class="select" aria-label="Bookmarks per panel">
-        <option value="10">10 bookmarks</option>
-        <option value="20">20 bookmarks</option>
-        <option value="30">30 bookmarks</option>
-        <option value="0">unset</option>
-      </select>
       <select id="columns-select" class="select" aria-label="Column selection">
-        <option value="3">3 cols</option>
-        <option value="6">6 cols</option>
-        <option value="10">10 cols</option>
+        <option value="4">4 cols</option>
+        <option value="8">8 cols</option>
+        <option value="12">12 cols</option>
       </select>
       <button id="edit-toggle" class="edit-toggle" type="button" aria-pressed="false">Edit</button>
     </div>

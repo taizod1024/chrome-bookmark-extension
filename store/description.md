@@ -15,7 +15,7 @@ Features
 - Keep folders: keep non-matching folders visible while searching.
 - Edit mode: drag and drop bookmarks between folders, add folders, rename, and delete.
 - When a dropped URL has no title, use the title of a matching open tab for the new bookmark.
-- Layout options: 3/6/10 columns, bookmarks per panel (10/20/30), equal height, single scrolling row.
+- Layout options: 4/8/12 columns, bookmarks per panel (10/20/30), equal height, single scrolling row.
 - Favicons for every bookmark.
 - Works entirely offline. No accounts, no tracking.
 

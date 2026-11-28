@@ -14,8 +14,9 @@ let busy = false;
 const rowOptions = [10, 20, 30, 0];
 let maxRows = rowOptions.includes(Number(localStorage.getItem("maxRows"))) ? Number(localStorage.getItem("maxRows")) : 0;
 const storedColumns = Number(localStorage.getItem("columns"));
-const columnOptions = [3, 6, 10];
-let columns = [2, 4].includes(storedColumns) ? 3 : columnOptions.includes(storedColumns) ? storedColumns : 6;
+const columnOptions = [4, 8, 12];
+const legacyColumns = { 2: 4, 3: 4, 6: 8, 10: 12 };
+let columns = columnOptions.includes(storedColumns) ? storedColumns : legacyColumns[storedColumns] || 8;
 
 let statusTimer;
 function showStatus(message, isError = false) {
@@ -38,10 +39,17 @@ function element(tag, className, text) {
 function setMaxRows(value) {
   maxRows = value;
   localStorage.setItem("maxRows", String(value));
-  document.body.classList.toggle("limit-rows", value > 0);
-  document.body.style.setProperty("--max-rows", String(value));
-  $("#rows-select").value = String(value);
+  updateMaxRowsControl();
   updateScrollbar();
+}
+
+function updateMaxRowsControl() {
+  const fitPanelHeight = document.body.classList.contains("fit-panel-height");
+  const effectiveMaxRows = fitPanelHeight ? 0 : maxRows;
+  document.body.classList.toggle("limit-rows", effectiveMaxRows > 0);
+  document.body.style.setProperty("--max-rows", String(effectiveMaxRows));
+  for (const value of rowOptions) $(`#rows-${value}`).checked = value === maxRows;
+  $("#rows-options").disabled = fitPanelHeight;
 }
 
 function setColumns(value) {
@@ -511,7 +519,12 @@ function render() {
   empty.textContent = "No matching bookmarks.";
 }
 
-$("#rows-select").addEventListener("change", (event) => setMaxRows(Number(event.target.value)));
+for (const value of rowOptions) {
+  const radio = $(`#rows-${value}`);
+  radio.addEventListener("change", () => {
+    if (radio.checked) setMaxRows(value);
+  });
+}
 $("#columns-select").addEventListener("change", (event) => setColumns(Number(event.target.value)));
 $("#edit-toggle").addEventListener("click", (event) => {
   editing = !editing;
@@ -544,9 +557,7 @@ for (const name of ["onCreated", "onRemoved", "onChanged", "onMoved", "onChildre
 for (const [id, key, className, fallback] of [
   ["#flag-no-wrap", "noWrap", "no-wrap", false],
   ["#flag-keep-folders", "keepFolders", "keep-folders", false],
-  ["#flag-no-height-adjustment", "noHeightAdjustment", "no-height-adjustment", false],
   ["#flag-no-animation", "noAnimation", "no-animation", false],
-  ["#flag-fit-panel-height", "fitPanelHeight", "fit-panel-height", false],
   ["#flag-no-subfolder-stacking", "noSubfolderStacking", "no-subfolder-stacking", false],
 ]) {
   const checkbox = $(id);
@@ -561,6 +572,28 @@ for (const [id, key, className, fallback] of [
     render();
   });
 }
+const initialHeightMode = localStorage.getItem("fitPanelHeight") === "true"
+  ? "page" : localStorage.getItem("noHeightAdjustment") === "true" ? "content" : "row";
+function setPanelHeight(mode) {
+  const fitPage = mode === "page";
+  const contentHeight = mode === "content";
+  localStorage.setItem("fitPanelHeight", String(fitPage));
+  localStorage.setItem("noHeightAdjustment", String(contentHeight));
+  document.body.classList.toggle("fit-panel-height", fitPage);
+  document.body.classList.toggle("no-height-adjustment", contentHeight);
+  updateMaxRowsControl();
+  updatePagePanelHeight();
+  updateScrollbar();
+  render();
+}
+for (const mode of ["content", "row", "page"]) {
+  const radio = $(`#height-${mode}`);
+  radio.checked = mode === initialHeightMode;
+  radio.addEventListener("change", () => {
+    if (radio.checked) setPanelHeight(mode);
+  });
+}
+setPanelHeight(initialHeightMode);
 updatePagePanelHeight();
 window.addEventListener("resize", () => {
   updatePagePanelHeight();

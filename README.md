@@ -9,7 +9,7 @@ The extension reads and organizes Chrome's existing bookmarks, but it does not c
 | Panel overview | Search |
 | --- | --- |
 | ![Folder panels](store/screenshots/01-panels.png) | ![Folder search](store/screenshots/02-search.png) |
-| 3, 6, or 10-column layouts organize every folder under the bookmarks bar. | Search by bookmark name, folder path, or URL. |
+| Folder panels organize every folder under the bookmarks bar. | Search by bookmark name, folder path, or URL. |
 
 | Edit mode | Equal-height layout |
 | --- | --- |
@@ -30,16 +30,14 @@ The extension reads and organizes Chrome's existing bookmarks, but it does not c
 
 ## Layout options
 
-Choose **3**, **6**, or **10** columns and set the visible bookmark limit to **10**, **20**, **30**, or unset.
+Choose **4**, **8**, or **12** columns.
 
 The **Options** menu also provides:
 
-- **Keep folders** - keep folder panels visible while filtering; panels without matches appear darker.
-- **No animation** - disable panel transitions.
-- **Fit panels to page height** - distribute available height across wrapped rows and scroll long bookmark lists inside their panels. When panels cannot fit at their minimum height, the page scrolls vertically.
-- **No height adjustment** - turn off automatic panel height balancing.
-- **No wrap** - use one horizontal row instead of wrapping.
-- **No subfolder stacking** - give every panel its own column.
+- **Search** - enable **Keep folders** to keep folder panels visible while filtering (panels without matches appear darker), or **No animation** to disable panel transitions.
+- **Panel height** - choose **Content height**, **Fit panels to row height**, or **Fit panels to page height**. The page-height option scrolls long bookmark lists inside their panels and disables the bookmark limit without changing its selected value. When panels cannot fit at their minimum height, the page scrolls vertically.
+- **Panel layout** - enable **No wrap** for one horizontal row, or **No subfolder stacking** to give every panel its own column.
+- **Bookmarks per panel** - set the visible bookmark limit to **10**, **20**, **30**, or **Unlimited**.
 
 ## Installation
 
