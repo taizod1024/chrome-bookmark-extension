@@ -428,7 +428,7 @@ function snapshotPanels() {
 
 // Animates panels that moved (FLIP), appeared (fade in) or disappeared (fade out a clone).
 function animatePanels(before) {
-  if (reducedMotion.matches || !document.body.classList.contains("animation")) return;
+  if (reducedMotion.matches || document.body.classList.contains("no-animation")) return;
   if (!before.size) {
     if (introPlayed) return;
     introPlayed = true;
@@ -468,7 +468,7 @@ function render() {
   const visiblePanels = visibleBookmarkPanels(bar, query, document.body.classList.contains("keep-folders"));
   const count = visiblePanels.reduce((total, panel) => total + panel.visibleEntries.length, 0);
   const fragment = document.createDocumentFragment();
-  for (const column of panelColumns(visiblePanels, !document.body.classList.contains("unstack"))) {
+  for (const column of panelColumns(visiblePanels, !document.body.classList.contains("no-subfolder-stacking"))) {
     const columnElement = element("div", "panel-column");
     for (const panel of column) {
       columnElement.append(renderPanel(panel.folder, panel.visibleEntries, panel.isRoot, panel.path));
@@ -508,7 +508,13 @@ search.addEventListener("input", () => {
 for (const name of ["onCreated", "onRemoved", "onChanged", "onMoved", "onChildrenReordered", "onImportEnded"]) {
   chrome.bookmarks[name].addListener(loadBookmarks);
 }
-for (const [id, key, className, fallback] of [["#flag-single-row", "singleRow", "single-row", false], ["#flag-keep-folders", "keepFolders", "keep-folders", false], ["#flag-equal-height", "equalHeight", "equal-height", false], ["#flag-animation", "animation", "animation", true], ["#flag-unstack", "unstackSubfolders", "unstack", false]]) {
+for (const [id, key, className, fallback] of [
+  ["#flag-no-wrap", "noWrap", "no-wrap", false],
+  ["#flag-keep-folders", "keepFolders", "keep-folders", false],
+  ["#flag-no-height-adjustment", "noHeightAdjustment", "no-height-adjustment", false],
+  ["#flag-no-animation", "noAnimation", "no-animation", false],
+  ["#flag-no-subfolder-stacking", "noSubfolderStacking", "no-subfolder-stacking", false],
+]) {
   const checkbox = $(id);
   const stored = localStorage.getItem(key);
   checkbox.checked = stored === null ? fallback : stored === "true";
