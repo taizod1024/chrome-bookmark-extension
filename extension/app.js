@@ -48,7 +48,27 @@ function setColumns(value) {
   columns = value;
   localStorage.setItem("columns", String(value));
   $("#columns-select").value = String(value);
+  updatePagePanelHeight();
   updateScrollbar();
+}
+
+function updatePagePanelHeight() {
+  const toolbarHeight = $(".toolbar").getBoundingClientRect().height;
+  const scrollbarHeight = panelScrollbar.getBoundingClientRect().height;
+  const availableHeight = window.innerHeight - toolbarHeight - scrollbarHeight - 12;
+  const groups = [...panels.children];
+  const panelStyles = getComputedStyle(panels);
+  const rowGap = parseFloat(panelStyles.rowGap);
+  const minPanelHeight = parseFloat(panelStyles.getPropertyValue("--fit-panel-min-height"));
+  const groupsPerRow = document.body.classList.contains("no-wrap") ? Math.max(1, groups.length) : columns;
+  const rows = Math.max(1, Math.ceil(groups.length / groupsPerRow));
+  const rowHeight = Math.max(0, (availableHeight - (rows - 1) * rowGap) / rows);
+  const rowHeights = Array.from({ length: rows }, (_, index) => {
+    const minHeight = Math.max(0, ...groups.slice(index * groupsPerRow, (index + 1) * groupsPerRow)
+      .map((group) => group.childElementCount * minPanelHeight + Math.max(0, group.childElementCount - 1) * parseFloat(getComputedStyle(group).rowGap)));
+    return `${Math.max(rowHeight, minHeight)}px`;
+  });
+  panels.style.setProperty("--page-panel-rows", rowHeights.join(" "));
 }
 
 function updateScrollbar() {
@@ -63,6 +83,8 @@ function updateScrollbar() {
 panelScrollbar.addEventListener("scroll", () => { panels.scrollLeft = panelScrollbar.scrollLeft; });
 panels.addEventListener("scroll", () => { panelScrollbar.scrollLeft = panels.scrollLeft; });
 panels.addEventListener("wheel", (event) => {
+  const entries = event.target.closest(".entries");
+  if (entries && entries.scrollHeight > entries.clientHeight) return;
   const maxScrollLeft = panels.scrollWidth - panels.clientWidth;
   const nextScrollLeft = Math.max(0, Math.min(maxScrollLeft, panels.scrollLeft + event.deltaY));
   if (event.deltaY === 0 || nextScrollLeft === panels.scrollLeft) return;
@@ -479,6 +501,7 @@ function render() {
   const scrollLeft = panels.scrollLeft;
   panels.replaceChildren(fragment);
   panels.scrollLeft = scrollLeft;
+  updatePagePanelHeight();
   updateScrollbar();
   animatePanels(before);
   $("#summary").textContent = `${count} bookmarks`;
@@ -513,6 +536,7 @@ for (const [id, key, className, fallback] of [
   ["#flag-keep-folders", "keepFolders", "keep-folders", false],
   ["#flag-no-height-adjustment", "noHeightAdjustment", "no-height-adjustment", false],
   ["#flag-no-animation", "noAnimation", "no-animation", false],
+  ["#flag-fit-panel-height", "fitPanelHeight", "fit-panel-height", false],
   ["#flag-no-subfolder-stacking", "noSubfolderStacking", "no-subfolder-stacking", false],
 ]) {
   const checkbox = $(id);
@@ -522,10 +546,16 @@ for (const [id, key, className, fallback] of [
   checkbox.addEventListener("change", () => {
     localStorage.setItem(key, String(checkbox.checked));
     document.body.classList.toggle(className, checkbox.checked);
+    updatePagePanelHeight();
     updateScrollbar();
     render();
   });
 }
+updatePagePanelHeight();
+window.addEventListener("resize", () => {
+  updatePagePanelHeight();
+  updateScrollbar();
+});
 const optionsMenu = $("#options-menu");
 document.addEventListener("click", (event) => { if (!optionsMenu.contains(event.target)) optionsMenu.open = false; });
 document.addEventListener("keydown", (event) => { if (event.key === "Escape") optionsMenu.open = false; });

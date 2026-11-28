@@ -23,6 +23,7 @@
   --scrollbar-thumb: #fff;
   --toolbar-button-width: 56px;
   --move-highlight: #9aabf4;
+  --fit-panel-min-height: 80px;
   color-scheme: light dark;
   font-family: "Segoe UI", "Yu Gothic UI", sans-serif;
   color: var(--surface-foreground);
@@ -92,6 +93,10 @@ main { padding: 0 0 4px; }
 .panels::-webkit-scrollbar { display: none; }
 .panel-column { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
 .panel-column > .panel { width: 100%; }
+body.fit-panel-height .panels { grid-template-rows: var(--page-panel-rows); align-items: stretch; }
+body.fit-panel-height .panel-column { height: 100%; min-height: 0; }
+body.fit-panel-height .panel-column > .panel { flex: 1 1 0; min-height: var(--fit-panel-min-height); }
+body.fit-panel-height .entries { min-height: 0; overflow-y: auto; }
 body:not(.no-height-adjustment) .panels { align-items: stretch; }
 body:not(.no-height-adjustment) .panel-column > .panel:last-child { flex: 1; }
 .panel { display: flex; flex-direction: column; min-width: 0; overflow: hidden; background: var(--surface-background); border: 1px solid var(--surface-border); border-radius: 6px; box-shadow: 0 3px 12px var(--panel-shadow); }

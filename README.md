@@ -1,32 +1,110 @@
-# chrome bookmark extension
+# Chrome Bookmark Extension
 
-A Chrome extension that displays the bookmarks bar as panels organized by folder. It reads and writes bookmarks directly in Chrome and does not send bookmark data elsewhere.
+A compact Chrome extension that turns the bookmarks bar into a searchable panel-based workspace.
+
+The extension reads and organizes Chrome's existing bookmarks, but it does not collect, transmit, or sell bookmark data. All bookmark operations and preferences stay in the browser.
+
+## Screenshots
+
+| Panel overview | Search |
+| --- | --- |
+| ![Folder panels](store/screenshots/01-panels.png) | ![Folder search](store/screenshots/02-search.png) |
+| 3, 6, or 10-column layouts organize every folder under the bookmarks bar. | Search by bookmark name, folder path, or URL. |
+
+| Edit mode | Equal-height layout |
+| --- | --- |
+| ![Drag-and-drop editing](store/screenshots/03-edit.png) | ![Equal-height layout](store/screenshots/04-layout.png) |
+| Rename, add, delete, and drag items to reorganize your bookmarks. | Display panels in a flexible equal-height layout with adjustable row limits. |
+
+## Features
+
+- Displays every folder under the bookmarks bar as a panel.
+- Shows nested folder paths such as `Dev / Docs`.
+- Stacks subfolders under their top-level folder by default.
+- Searches bookmark titles, full folder paths, and URLs.
+- Supports AND-style search terms, for example `dev docs`.
+- Keeps folders visible during search with **Keep folders**.
+- Shows Chrome favicons with a fallback icon when unavailable.
+- Opens bookmarks in a new tab and blocks unsafe `javascript:` and `data:` URLs.
+- Automatically reflects bookmark changes made in Chrome.
+
+## Layout options
+
+Choose **3**, **6**, or **10** columns and set the visible bookmark limit to **10**, **20**, **30**, or unset.
+
+The **Options** menu also provides:
+
+- **Keep folders** - keep folder panels visible while filtering.
+- **No animation** - disable panel transitions.
+- **Fit panels to page height** - distribute available height across wrapped rows and scroll long bookmark lists inside their panels. When panels cannot fit at their minimum height, the page scrolls vertically.
+- **No height adjustment** - turn off automatic panel height balancing.
+- **No wrap** - use one horizontal row instead of wrapping.
+- **No subfolder stacking** - give every panel its own column.
 
 ## Installation
 
-1. Open `chrome://extensions` in Chrome and enable Developer mode.
-2. Select **Load unpacked** and choose the `extension` folder.
-3. Click the extension icon in the toolbar to open the bookmark view in a new tab, or switch to its existing tab if it is already open.
+1. Open `chrome://extensions` in Chrome.
+2. Enable **Developer mode**.
+3. Select **Load unpacked**.
+4. Choose the `extension` folder from this repository.
+5. Click the extension icon to open bookmark panels in a tab.
 
-The extension uses the tabs permission to find the title of an open page when its URL is dropped. After updating the extension, reload it and accept any new permission prompt.
+An existing extension tab is reused when the icon is clicked again.
 
-## Usage
+When updating the extension, reload it from `chrome://extensions` and accept any new permission prompts.
 
-- Every folder under the bookmarks bar is displayed as its own panel. Nested panel titles show the full path, such as `folder1` or `folder1/folder11`. Bookmarks appear in the panel for their direct parent folder; bookmarks directly under the bookmarks bar appear in the **Bookmarks bar** panel.
-- Panels are stacked vertically per top-level folder: each folder directly under the Bookmarks bar and all of its subfolders share one column. The **Bookmarks bar** panel remains last in its own column.
-- Favicons stored by Chrome are displayed for bookmarks. A fallback icon is used if a favicon is unavailable.
-- Search filters by partial matches in bookmark names, folder names, and URLs. Panels with no matching bookmarks are hidden, including in Edit mode. If a folder name matches, bookmarks in that folder are also shown.
-- Drag a URL from the browser onto a bookmark to add it before that bookmark, or onto **File / Folder** at the bottom of a panel to add it to that folder. This works without entering Edit mode. The title from the drag data or a matching open tab is used when available; otherwise the URL is used as the name.
-- Switch between 3, 6, and 10 columns. Use the horizontal scrollbar above the panels when they do not fit on screen.
-- Select **Edit** to change names or bookmark URLs using separate buttons and browser prompts, or to delete bookmarks and folders. A folder containing child folders cannot be deleted; an error dialog is shown. Deleting a folder with bookmarks removes those bookmarks after confirmation. Drag an item onto another item of the same kind to move it to that item's original position; between folders it is inserted before the target. Drop a bookmark on a folder name to move it to the end of that folder. Use **File / Folder** at the bottom of a folder panel to move an item to the end of that folder. The same area in the **Bookmarks bar** panel accepts both bookmarks and folders; folders appear before the **Bookmarks bar** panel.
-- Changes made in Chrome are reflected in the view. Edits and moves are saved to Chrome immediately.
+## Search
 
-For safety, `javascript:` and `data:` bookmarks cannot be opened from this view.
+Enter text in the search field to filter bookmarks by partial matches in:
 
-## Tests
+- Bookmark names
+- Folder names and full folder paths
+- URLs
 
-Run `npm test` to execute the logic tests (requires Node.js).
+Separate terms are combined as AND filters. For example, `dev docs` must match a bookmark or folder through the same search fields.
 
-## Packaging
+## Edit and organize
 
-Chrome runtime files live in `extension/`. Run `npm run zip` to package the entire folder into a ZIP named from `package.json`, for example `chrome-bookmark-extension-1.0.0.zip`. New files added to `extension/` are included automatically.
+Select **Edit** to enable bookmark and folder controls.
+
+- Use `✎` to rename a bookmark or folder.
+- Use **URL** to change a bookmark URL.
+- Use `+` to add a folder.
+- Use `×` to delete a bookmark or folder.
+- Drag a bookmark or folder with the grip handle to move it.
+- Drop a bookmark or folder on the **File / Folder** area at the bottom of a panel to move it to the end of that folder.
+- Drag a URL from the browser onto a bookmark or folder drop area to create a bookmark.
+
+Folders containing child folders cannot be deleted. Deleting a folder that contains only bookmarks requires confirmation.
+
+When a dropped URL has no useful title, the extension checks matching open tabs and uses the tab title when available.
+
+## Privacy and permissions
+
+- `bookmarks` - read, create, move, rename, and delete bookmarks.
+- `favicon` - display each site's Chrome-fetched favicon.
+- `tabs` - match dropped URLs to open tabs and reuse their titles.
+
+The extension uses `localStorage` for layout and option preferences. Bookmark data and tab information are processed locally and are never transmitted.
+
+## Development
+
+The Chrome runtime files are in [`extension/`](extension/).
+
+Run the logic tests with Node.js:
+
+```powershell
+npm test
+```
+
+Package the extension for local distribution:
+
+```powershell
+npm run zip
+```
+
+The package script creates a versioned ZIP in the repository root. For example:
+
+```text
+chrome-bookmark-extension-1.0.0.zip
+```
