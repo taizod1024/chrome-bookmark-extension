@@ -1,4 +1,5 @@
-import { bookmarkBar, bookmarkDropIndex, bookmarkFromDrop, faviconUrl, isSafeBookmarkUrl, panelColumns, panelHeaderDestination, titleForDroppedBookmark, tryMoveDestination, visibleBookmarkPanels } from "./model.js";
+import { bookmarkBar, bookmarkDropIndex, bookmarkFromDrop, faviconUrl, isSafeBookmarkUrl, panelColumns, panelHeaderDestination, tryMoveDestination, visibleBookmarkPanels } from "./model.js";
+import { resolveDroppedTitle } from "./tab-title.js";
 
 const $ = (selector) => document.querySelector(selector);
 const panels = $("#panels");
@@ -217,9 +218,7 @@ async function addDroppedBookmark(dataTransfer, destination) {
   busy = true;
   try {
     const bookmark = droppedBookmark(dataTransfer);
-    if (bookmark.title === bookmark.url) {
-      bookmark.title = titleForDroppedBookmark(bookmark, await chrome.tabs.query({}));
-    }
+    bookmark.title = await resolveDroppedTitle(bookmark);
     const children = await chrome.bookmarks.getChildren(destination.parentId);
     const index = bookmarkDropIndex(children, destination.beforeId);
     await chrome.bookmarks.create({ parentId: destination.parentId, index, ...bookmark });

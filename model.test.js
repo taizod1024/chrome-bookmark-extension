@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { bookmarkBar, bookmarkDropIndex, bookmarkFromDrop, faviconUrl, folderPanels, isSafeBookmarkUrl, matchesEntry, moveDestination, panelColumns, panelHeaderDestination, titleForDroppedBookmark, tryMoveDestination, visibleBookmarkPanels } from "./extension/model.js";
+import { bookmarkBar, bookmarkDropIndex, bookmarkFromDrop, faviconUrl, folderPanels, isSafeBookmarkUrl, matchesEntry, moveDestination, panelColumns, panelHeaderDestination, tryMoveDestination, visibleBookmarkPanels } from "./extension/model.js";
+import { titleForDroppedBookmark } from "./extension/tab-title.js";
 
 const bar = {
   id: "1",

@@ -81,13 +81,6 @@ export function bookmarkFromDrop(uriList, plainText, title = "") {
   return { url, title: title.trim() || fallbackTitle };
 }
 
-export function titleForDroppedBookmark(bookmark, tabs) {
-  if (bookmark.title !== bookmark.url) return bookmark.title;
-  const url = new URL(bookmark.url).href;
-  const tab = tabs.find((item) => item.url === url && item.title?.trim());
-  return tab ? tab.title.trim() : bookmark.title;
-}
-
 export function bookmarkDropIndex(children, beforeId) {
   if (!beforeId) return children.length;
   const index = children.findIndex((child) => child.id === beforeId && child.url !== undefined);
